@@ -1,24 +1,9 @@
-'use client'
-import { useQuery, gql } from '@apollo/client';
+import React from 'react'
 
-export default function Home() {
-
-  const GET_USERS = gql`
-  query {
-    users {
-      id
-      username
-      email
-      todos {
-        title
-      }
-    }
-  }
-`;
-  const { loading, error, data } = useQuery(GET_USERS);
-  console.log(data)
-
+function App() {
   return (
-    <div>Hello</div>
+    <div>App</div>
   )
 }
+
+export default App

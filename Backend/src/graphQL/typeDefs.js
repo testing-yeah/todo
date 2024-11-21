@@ -43,13 +43,19 @@ const typeDefs = gql`
     todo(id: ID!): Todo
   }
 
-  type Mutation {
-    createUser(username: String!, email: String!, password: String!): User!
-    createTodo(userId: String!, title: String!, description: String!): Todo!
-    updateTodo(id: ID!, completed: Boolean!): Todo!
-    deleteTodo(id: ID!): Todo!
-    createToken(userId: String!, token: String!, expiresAt: DateTime!): Token!
-  }
+type Mutation {
+  createUser(username: String!, email: String!, password: String!): User!# 
+  loginUser(email: String!, password: String!): AuthPayload! 
+  createTodo(userId: String!, title: String!, description: String!): Todo!
+  updateTodo(id: ID!, completed: Boolean!): Todo!
+  deleteTodo(id: ID!): Todo!
+  createToken(userId: String!, token: String!, expiresAt: DateTime!): Token!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
 `;
 
 export default typeDefs;
