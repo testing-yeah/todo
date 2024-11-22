@@ -3,6 +3,7 @@ import React from 'react';
 import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink, from } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { setContext } from '@apollo/client/link/context';
+import Cookies from 'js-cookie';
 
 function ApolloProviderCompo({ children }) {
     const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -19,21 +20,22 @@ function ApolloProviderCompo({ children }) {
     });
 
     const authLink = setContext((_, { headers }) => {
-        const token = localStorage.getItem('token');
+        const token = Cookies.get('sessionId');  
         return {
             headers: {
                 ...headers,
-                Authorization: token ? `Bearer ${token}` : '',
+                Authorization: token ? `Bearer ${token}` : '',  
             },
         };
     });
 
     const httpLink = new HttpLink({
-        uri: 'http://localhost:5000/graphql',
+        uri: 'http://localhost:5000/graphql',  
+        credentials: 'include', 
     });
 
     const client = new ApolloClient({
-        link: from([errorLink, authLink.concat(httpLink)]),
+        link: from([errorLink, authLink.concat(httpLink)]),  
         cache: new InMemoryCache(),
     });
 

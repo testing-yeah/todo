@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { v4 as uuidV4 } from 'uuid';
 
 export default {
     Query: {
@@ -12,34 +12,19 @@ export default {
             include: { todos: true, tokens: true },
         }),
 
-        // loginUser: async (_, { email, password }, { prisma }) => {
-        //     const user = await prisma.user.findUnique({
-        //         where: {
-        //             email: email,
-        //         },
-        //     });
+        getUserProfile: async (_, __, { user, prisma }) => {
+            if (!user) {
+                throw new Error("Unauthorized: Please log in.");
+            }
 
-        //     if (!user) {
-        //         throw new Error('User not found');
-        //     }
+            const userProfile = await prisma.user.findUnique({
+                where: { id: user.id },
+            });
 
-        //     const isPasswordValid = await bcrypt.compare(password, user.password);
+            console.log('User Profile:', user); // Log the data to see the structure
+            return userProfile;
+        },
 
-        //     if (!isPasswordValid) {
-        //         throw new Error('Invalid password');
-        //     }
-
-        //     const token = jwt.sign(
-        //         { userId: user.id },
-        //         process.env.JWT_SECRET,
-        //         { expiresIn: '1h' }
-        //     );
-
-        //     return {
-        //         user,
-        //         token,
-        //     };
-        // },
     },
 
     Mutation: {
@@ -61,7 +46,7 @@ export default {
 
         loginUser: async (_, { email, password }, { prisma }) => {
             const user = await prisma.user.findUnique({
-                where: { email }
+                where: { email },
             });
 
             if (!user) throw new Error('User not found');
@@ -70,13 +55,16 @@ export default {
 
             if (!isPasswordValid) throw new Error('Invalid password');
 
-            const token = jwt.sign(
-                { userId: user.id },
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' }
-            );
+            const sessionToken = uuidV4();
+            // const sessionExpiry = new Date(Date.now() + 10 * 1000);
+            const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-            return { token, user };
+            const updatedUser = await prisma.user.update({
+                where: { id: user.id },
+                data: { sessionToken, expiresAt: sessionExpiry },
+            });
+
+            return { user: updatedUser, sessionToken };
         },
     },
 

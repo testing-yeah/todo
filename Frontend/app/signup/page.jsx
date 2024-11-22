@@ -60,7 +60,7 @@ export default function SignUp() {
                             value={formData.username}
                             onChange={handleChange}
                             required
-                            className="mt-2"
+                            className="mt-2 bg-transparent border"
                         />
                     </div>
 

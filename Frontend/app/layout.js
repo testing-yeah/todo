@@ -3,6 +3,7 @@ import "./globals.css";
 import ApolloProviderCompo from './apolloProvider'
 import { ThemeProviderCompo } from './../components/themeProvider'
 import Header from './../components/header'
+import ProtectedRoute from './../components/protectedRoute'
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,12 +29,15 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased dotted-background `}
       >
-        <Header />
         <ThemeProviderCompo
-          attribute="class" defaultTheme="dark" enableSystem={true}
+          attribute="class" defaultTheme="dark"
         >
           <ApolloProviderCompo>
-            {children}
+            <Header />
+
+            <ProtectedRoute>
+              {children}
+            </ProtectedRoute>
           </ApolloProviderCompo>
         </ThemeProviderCompo>
       </body>
