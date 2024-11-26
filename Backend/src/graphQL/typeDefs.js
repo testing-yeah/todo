@@ -40,16 +40,20 @@ const typeDefs = gql`
   type Query {
     users: [User!]!
     user(id: ID!): User
+    getUserProfile: User
+
     todos: [Todo!]!
     todo(id: ID!): Todo
+    getTodoByUser: [Todo!]!
   }
 
 type Mutation {
   createUser(username: String!, email: String!, password: String!): User!
   loginUser(email: String!, password: String!): LoginResponse!
   createTodo(title: String!, description: String!): Todo!
-  updateTodo(id: ID!, completed: Boolean!): Todo!
-  deleteTodo(id: ID!): Todo!
+  updateTodo(id: ID!,title: String!,description:String!,completed:Boolean!): Todo!
+  deleteTodo(id: ID!): Boolean!
+  getTodoById(id:ID!):Todo!
   createToken(userId: String!, token: String!, expiresAt: DateTime!): Token!
 }
 
@@ -61,12 +65,6 @@ type AuthPayload {
   type LoginResponse {
   user: User!
   sessionToken: String!
-}
-  
-type Query {
-  getUserProfile: User
-}
-
-`;
+}`;
 
 export default typeDefs;

@@ -11,11 +11,11 @@ export default function ProtectedRoute({ children }) {
     useEffect(() => {
         const userSession = Cookies.get('sessionId');
 
-        if (!userSession) {
-            router.push('/signup');
-        } else {
-            router.replace('/')
-        }
+        // if (!userSession) {
+        //     router.push('/signup');
+        // } else {
+        //     router.replace('/')
+        // }
     }, [router]);
 
 

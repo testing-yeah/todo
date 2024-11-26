@@ -25,7 +25,7 @@ export default function SignUp() {
     const [signUp, { data, loading, error }] = useMutation(SIGN_UP_MUTATION);
 
     const handleSubmit = async (e) => {
-        console.log('asd')
+        // console.log('asd')
         e.preventDefault();
         try {
             const res = await signUp({ variables: { ...formData } });

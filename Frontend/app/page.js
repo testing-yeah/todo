@@ -1,42 +1,17 @@
+'use client'
 import React from 'react'
-import { Trash2 } from 'lucide-react';
-import { Button } from '../@/components/ui/button';
 import AddTodoFrom from '../components/addTodo'
+import { useQuery } from '@tanstack/react-query';
+import TodoNotes from '../components/todoNotes'
+import getTodo from '../todoRequest/getTodo'
+import Cookies from 'js-cookie'
 
 function App() {
-
-  const fakeData = [
-    {
-      id: 1,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-    {
-      id: 2,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-    {
-      id: 3,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-    {
-      id: 4,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-    {
-      id: 5,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-    {
-      id: 6,
-      title: 'Complete Work',
-      desc: "ajsndasdasdkjasjksd"
-    },
-  ]
+  const token = Cookies.get('sessionId')
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['getTodoByUser'],
+    queryFn: () => getTodo(token)
+  })
 
   return (
     <>
@@ -44,21 +19,13 @@ function App() {
         <AddTodoFrom />
         <div className='grid grid-cols-4 gap-4'>
           {
-            fakeData.map((data) => {
+            data && data.getTodoByUser && data.getTodoByUser.map((data) => {
               return (
-                <div key={data.id} className='w-full py-2 px-3 border border-slate-400 rounded-md'>
-                  <div className='flex justify-between items-center'>
-                    <p>📍 {" "} {data.title}</p>
-                    <Button variant="destructive">
-                      <Trash2 size={20} color={'red'} />
-                    </Button>
-                  </div>
-                  <p className='pl-6'>{data.desc}</p>
-                </div>
+                <TodoNotes key={data.id} data={data} />
               )
             })
           }
-        </div >
+        </div>
       </div >
     </>
   )

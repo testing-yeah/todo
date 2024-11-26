@@ -7,12 +7,19 @@ export default {
             include: { todos: true, tokens: true },
         }),
 
-        user: async (_, { id }, { prisma }) => prisma.user.findUnique({
-            where: { id },
-            include: { todos: true, tokens: true },
-        }),
+        user: async (_, __, { user, prisma }) => {
+            if (!user) {
+                throw new Error('User is not authenticated');
+            }
+
+            return prisma.user.findUnique({
+                where: { id: user.id },
+                include: { todos: true, tokens: true },
+            });
+        },
 
         getUserProfile: async (_, __, { user, prisma }) => {
+            // console.log("use", user)
             if (!user) {
                 throw new Error("Unauthorized: Please log in.");
             }
@@ -21,7 +28,7 @@ export default {
                 where: { id: user.id },
             });
 
-            console.log('User Profile:', user); // Log the data to see the structure
+            // console.log('User Profile:', user); // Log the data to see the structure
             return userProfile;
         },
 
@@ -44,7 +51,10 @@ export default {
             return newUser;
         },
 
-        loginUser: async (_, { email, password }, { prisma }) => {
+        loginUser: async (_, { email, password }, { res, prisma }) => {
+            if (!res) {
+                alert('Res Not foUND')
+            }
             const user = await prisma.user.findUnique({
                 where: { email },
             });
@@ -58,6 +68,13 @@ export default {
             const sessionToken = uuidV4();
             // const sessionExpiry = new Date(Date.now() + 10 * 1000);
             const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+            // res.setHeader('Set-Cookie', `sessionId=${sessionToken}; HttpOnly; Path=/; SameSite=Lax`);
+            // context.res.cookie("sessionId", sessionToken, {
+            //     httpOnly: true,
+            //     secure: true,
+            //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            // });
 
             const updatedUser = await prisma.user.update({
                 where: { id: user.id },

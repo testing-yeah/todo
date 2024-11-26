@@ -6,6 +6,7 @@ export default {
     DateTime,
     Query: {
         ...userResolvers.Query,
+        ...todoResolvers.Query
     },
     Mutation: {
         ...userResolvers.Mutation,
