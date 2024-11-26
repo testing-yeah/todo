@@ -26,17 +26,6 @@ model User {
   todos  Todo[]
 }
 
-model Token {
-  id        String   @id @default(cuid())
-  token     String
-  userId    String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  user      User     @relation(fields: [userId], references: [id])
-}
-
 model Todo {
   id          String   @id @default(cuid())
   title       String

@@ -1,7 +1,9 @@
+import ApolloProviderCompo from "@/context/providers";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import ApolloProviderCompo, { Providers } from "@/context/providers";
+import Navbar from "./components/NavBar";
+import Footer from "./components/Footer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -29,7 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ApolloProviderCompo>{children}</ApolloProviderCompo>
+        <ApolloProviderCompo>
+          <Navbar />
+          {children}
+          <Footer />
+        </ApolloProviderCompo>
       </body>
     </html>
   );

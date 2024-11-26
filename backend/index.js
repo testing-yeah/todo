@@ -1,11 +1,11 @@
+import { ApolloServer } from "apollo-server-express";
+import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import { ApolloServer } from "apollo-server-express";
 import jwt from "jsonwebtoken";
-import { typeDefs } from "./src/graphQL/type.js";
-import { resolvers } from "./src/graphQL/resolvers/user.js";
-import cors from "cors";
 import prisma from "./prisma/client.js";
+import { resolvers } from "./src/graphQL/resolvers/user.js";
+import { typeDefs } from "./src/graphQL/type.js";
 
 dotenv.config();
 
@@ -16,25 +16,28 @@ const port = process.env.PORT || 8080;
 const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }) => {
-        const token = req.headers.authorization || '';
+    context: ({ req, res }) => {
+        const token = req.headers.authorization || "";
 
         const context = {
             prisma,
+            res,
         };
 
         if (token) {
             try {
-                const decodedToken = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET);
+                const decodedToken = jwt.verify(
+                    token.split(" ")[1],
+                    process.env.JWT_SECRET
+                );
                 context.userId = decodedToken.userId;
             } catch (error) {
-                throw new Error('Authentication failed');
+                throw new Error("Authentication failed");
             }
         }
 
         return context;
     },
-
 });
 
 const serverStart = async () => {

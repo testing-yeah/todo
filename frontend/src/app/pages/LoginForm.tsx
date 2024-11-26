@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { LOGIN_USER } from "../lib/graphql";
-import { useRouter } from "next/navigation";
 import { useMutation } from "@apollo/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { LOGIN_USER } from "../lib/graphql";
 
 // Define types for the mutation response and variables
 interface LoginUserResponse {
@@ -36,10 +37,11 @@ const LoginForm: React.FC = () => {
 
             console.log("Logged in successfully:", data?.login);
 
-            const token = data?.login; // Login is a string (the token itself)
+            const token = data?.login;
+
             if (token) {
-                localStorage.setItem("token", token); // Save token to localStorage
-                router.push("/"); // Navigate to home page
+                localStorage.setItem("token", token);
+                router.push("/");
             }
         } catch (err) {
             console.error("Error during login:", err);
@@ -97,6 +99,15 @@ const LoginForm: React.FC = () => {
                 >
                     {loading ? "Logging in..." : "Login"}
                 </button>
+
+                <div>
+                    <p className="text-base text-black">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register" className="text-blue-700 underline">
+                            Register
+                        </Link>
+                    </p>
+                </div>
             </form>
         </div>
     );

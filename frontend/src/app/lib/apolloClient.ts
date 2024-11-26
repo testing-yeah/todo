@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 
 // Create Apollo Client with explicit types
 const createApolloClient = (): ApolloClient<InMemoryCache> => {

@@ -9,16 +9,8 @@ const typeDefs = gql`
     password: String
     createdAt: String!
     updatedAt: String!
+    
     todos: [Todo!]!
-  }
-
-  type Token {
-    id: String!
-    token: String!
-    expiresAt: String!
-    createdAt: String!
-    updatedAt: String!
-    user: User!
   }
 
   type Todo {
@@ -38,8 +30,9 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    register(username: String!,email: String!, password: String!): User!
+    register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): String! # JWT Token
+    logout: Boolean!
     addTodo(title: String!, description: String!, userId: String!): Todo!
     toggleTodoCompletion(id: String!): Todo!
   }

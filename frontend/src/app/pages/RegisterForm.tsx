@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { REGISTER_USER } from "../lib/graphql";
-import { useRouter } from "next/navigation";
 import { useMutation } from "@apollo/client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import { REGISTER_USER } from "../lib/graphql";
 
 // Define types for the mutation response and variables
 interface RegisterUserResponse {
@@ -38,9 +39,6 @@ const RegisterForm: React.FC = () => {
                 variables: { email, password, username },
             });
 
-            console.log("Registered successfully:", data?.register);
-
-            // Store the token and redirect
             if (data?.register) {
                 router.push("/login");
             }
@@ -117,6 +115,15 @@ const RegisterForm: React.FC = () => {
                 >
                     {loading ? "Registering..." : "Register"}
                 </button>
+
+                <div>
+                    <p className="text-base text-black">
+                        Already have an account?{" "}
+                        <Link href="/login" className="text-blue-700 underline">
+                            Login
+                        </Link>
+                    </p>
+                </div>
             </form>
         </div>
     );

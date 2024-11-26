@@ -33,14 +33,9 @@ export interface RegisterUserVariables {
 // Login mutation
 export const LOGIN_USER = gql`
   mutation LoginUser($email: String!, $password: String!) {
-    login(email: $email, password: $password){
-      id
-      email
-      token
-    }
+    login(email: $email, password: $password)
   }
 `;
-
 
 export interface LoginUserResponse {
   login: {
@@ -53,4 +48,14 @@ export interface LoginUserResponse {
 export interface LoginUserVariables {
   email: string;
   password: string;
+}
+
+export const LOGOUT_USER = gql`
+  mutation LogoutUser {
+    logout
+  }
+`;
+
+export interface LogoutUserResponse {
+  logout: boolean;
 }

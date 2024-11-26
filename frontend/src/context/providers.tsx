@@ -1,10 +1,20 @@
-'use client';
-import React from 'react';
-import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink, from } from '@apollo/client';
-import { onError } from '@apollo/client/link/error';
-import { setContext } from '@apollo/client/link/context';
+"use client";
+import {
+    ApolloClient,
+    ApolloProvider,
+    HttpLink,
+    InMemoryCache,
+    from,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
+import React from "react";
 
-function ApolloProviderCompo({ children }) {
+interface ApolloProviderCompoProps {
+    children: React.ReactNode;
+}
+
+function ApolloProviderCompo({ children }: ApolloProviderCompoProps) {
     const errorLink = onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors) {
             graphQLErrors.forEach(({ message, locations, path }) =>
@@ -19,17 +29,17 @@ function ApolloProviderCompo({ children }) {
     });
 
     const authLink = setContext((_, { headers }) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         return {
             headers: {
                 ...headers,
-                Authorization: token ? `Bearer ${token}` : '',
+                Authorization: token ? `Bearer ${token}` : "",
             },
         };
     });
 
     const httpLink = new HttpLink({
-        uri: 'http://localhost:8000/graphql',
+        uri: "http://localhost:8000/graphql",
     });
 
     const client = new ApolloClient({
@@ -37,11 +47,7 @@ function ApolloProviderCompo({ children }) {
         cache: new InMemoryCache(),
     });
 
-    return (
-        <ApolloProvider client={client}>
-            {children}
-        </ApolloProvider>
-    );
+    return <ApolloProvider client={client}>{children}</ApolloProvider>;
 }
 
 export default ApolloProviderCompo;

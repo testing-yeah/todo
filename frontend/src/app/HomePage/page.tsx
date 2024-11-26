@@ -1,11 +1,12 @@
-import React from 'react'
+import React from "react";
+import AddTodo from "../pages/AddTodo";
 
 const HomePage = () => {
     return (
         <div>
-            Hello Jaydip!
+            <AddTodo />
         </div>
-    )
-}
+    );
+};
 
-export default HomePage
+export default HomePage;
