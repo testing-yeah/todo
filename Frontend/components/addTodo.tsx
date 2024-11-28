@@ -1,66 +1,83 @@
 'use client'
+
 import React, { useRef, useState } from 'react'
 import useOutside from '../hooks/useOutside'
-import { Button } from '../@/components/ui/button';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Cookies from 'js-cookie';
-import { X } from 'lucide-react';
-import { createTodo } from '../todoRequest/createTodo'
+import { Button } from '../@/components/ui/button'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import Cookies from 'js-cookie'
+import { X } from 'lucide-react'
+import { createTodo, CreateTodoResponse } from '../todoRequest/createTodo'
 
-function AddTodoForm() {
+// Define types for form data
+interface TodoFormData {
+    title: string
+    description: string
+    completed: boolean
+}
 
+interface AddTodoFormProps {
+    // You can add any props here in the future if needed
+}
+
+function AddTodoForm({ }: AddTodoFormProps) {
     const queryClient = useQueryClient()
     const token = Cookies.get('sessionId')
-    const { mutate } = useMutation({
+    const { mutate } = useMutation<CreateTodoResponse, Error, { title: string, description: string, token: string }>({
         mutationFn: createTodo,
     })
 
-    const formRef = useRef()
+    const formRef = useRef<HTMLFormElement | null>(null)
 
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [completed, setCompleted] = useState(false);
-    const [formPopup, setFormPopup] = useState(false)
+    const [title, setTitle] = useState<string>('')
+    const [description, setDescription] = useState<string>('')
+    const [completed, setCompleted] = useState<boolean>(false)
+    const [formPopup, setFormPopup] = useState<boolean>(false)
     const userCookie = Cookies?.get('sessionId')
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
 
         if (!userCookie) {
             alert('User not Logged In')
         }
 
         if (!title || !description) {
-            alert('Please fill in all fields');
-            return;
+            alert('Please fill in all fields')
+            return
         }
 
         try {
-            const { data } = mutate({ title, description, token }, {
-                onSuccess: (data) => {
-                    queryClient.invalidateQueries(['getTodoByUser']);
-                },
-                onError: (err) => {
-                    alert('Invalid credentials. Please try again.');
-                },
-            });
-            console.log('Todo created:', data);
+            mutate(
+                { title, description, token: userCookie || '' },
+                {
+                    onSuccess: (data) => {
+                        queryClient.invalidateQueries(['getTodoByUser'] as any)
+                        console.log('Todo created:', data)
+                    },
+                    onError: (err) => {
+                        alert('Error creating todo. Please try again.')
+                        console.error(err)
+                    },
+                }
+            )
         } catch (e) {
-            console.error('Error creating todo:', e);
+            console.error('Error creating todo:', e)
         }
 
-        setTitle('');
-        setDescription('');
-        setCompleted(false);
+        setTitle('')
+        setDescription('')
+        setCompleted(false)
         setFormPopup(false)
-    };
+    }
 
     useOutside(formRef, () => setFormPopup(false))
 
     return (
         <>
             <div className='flex justify-end text-white mb-4' onClick={() => setFormPopup(true)}>
-                <Button variant='outline' className=' px-2 bg-red-600 hover:bg-slate-800 transition-all duration-200'>Create Todo</Button>
+                <Button variant='outline' className=' px-2 bg-red-600 hover:bg-slate-800 transition-all duration-200'>
+                    Create Todo
+                </Button>
             </div>
 
             {formPopup && (
@@ -95,17 +112,6 @@ function AddTodoForm() {
                                 />
                             </div>
 
-                            <div className="flex items-center mb-4">
-                                <input
-                                    type="checkbox"
-                                    checked={completed}
-                                    id='check'
-                                    onChange={() => setCompleted(!completed)}
-                                    className="mr-2"
-                                />
-                                <label htmlFor='check' className="text-sm">Completed</label>
-                            </div>
-
                             <button
                                 type="submit"
                                 className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
@@ -113,12 +119,10 @@ function AddTodoForm() {
                                 Add Todo
                             </button>
                         </form>
-                    </div >
+                    </div>
                 </div>
             )}
         </>
-
-
     )
 }
 

@@ -1,6 +1,6 @@
 import { GET_TODO_QUERY } from '../graphQL/getQueryGql/getTodo';
 
-export default async function getTodo(token) {
+export default async function getTodo(token: string) {
     const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {

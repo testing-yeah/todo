@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt';
-import { v4 as uuidV4 } from 'uuid';
+import jwt from 'jsonwebtoken'
 
 export default {
     Query: {
         users: async (_, __, { prisma }) => prisma.user.findMany({
-            include: { todos: true, tokens: true },
+            include: { todos: true },
         }),
 
         user: async (_, __, { user, prisma }) => {
@@ -14,7 +14,7 @@ export default {
 
             return prisma.user.findUnique({
                 where: { id: user.id },
-                include: { todos: true, tokens: true },
+                include: { todos: true },
             });
         },
 
@@ -52,9 +52,6 @@ export default {
         },
 
         loginUser: async (_, { email, password }, { res, prisma }) => {
-            if (!res) {
-                alert('Res Not foUND')
-            }
             const user = await prisma.user.findUnique({
                 where: { email },
             });
@@ -65,28 +62,13 @@ export default {
 
             if (!isPasswordValid) throw new Error('Invalid password');
 
-            const sessionToken = uuidV4();
-            // const sessionExpiry = new Date(Date.now() + 10 * 1000);
-            const sessionExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            const token = jwt.sign({ userId: user.id, }, process.env.JWT_SECRET, { expiresIn: "1h" })
 
-            // res.setHeader('Set-Cookie', `sessionId=${sessionToken}; HttpOnly; Path=/; SameSite=Lax`);
-            // context.res.cookie("sessionId", sessionToken, {
-            //     httpOnly: true,
-            //     secure: true,
-            //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            // });
-
-            const updatedUser = await prisma.user.update({
-                where: { id: user.id },
-                data: { sessionToken, expiresAt: sessionExpiry },
-            });
-
-            return { user: updatedUser, sessionToken };
+            return { user, token };
         },
     },
 
     User: {
         todos: (parent, _, { prisma }) => prisma.todo.findMany({ where: { userId: parent.id } }),
-        tokens: (parent, _, { prisma }) => prisma.token.findMany({ where: { userId: parent.id } }),
     },
 };

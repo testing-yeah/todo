@@ -6,6 +6,7 @@ query getTodo {
     id
     title
     description
+    completed
   }
 }`
 
@@ -28,10 +29,11 @@ export const GET_TODO_BYID = `
     id
     title
     description
+    completed
    }
 }`;
 
-export const UPDATE_TODO =`
+export const UPDATE_TODO = `
   mutation updatetodo($id: ID!,$title:String!,$description:String!,$completed:Boolean!) {
    updateTodo(id: $id,title:$title,description:$description,completed:$completed){
     id
@@ -40,3 +42,14 @@ export const UPDATE_TODO =`
     completed
    }
 }`;
+
+export const COMPLETE_TODO = ` 
+  mutation completeTodo($id:ID!,$completed:Boolean!) {
+    completedTodo(id:$id,completed:$completed){
+         id
+      title
+      description
+      completed
+    }
+  }
+`

@@ -17,7 +17,6 @@ export const LOGIN_USER = `
                       username
                       email
                     }
-                    sessionToken
                   }
                 }
               `;

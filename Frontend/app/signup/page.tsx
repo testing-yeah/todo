@@ -1,11 +1,17 @@
 'use client'
-import { useQuery, gql, useMutation } from '@apollo/client';
-import { useEffect, useState } from 'react';
+import { gql, useMutation } from '@apollo/client';
+import { FormEvent, useEffect, useState, ChangeEvent } from 'react';
 import { Label } from '../../@/components/ui/label'
 import { Form } from '../../@/components/ui/form'
 import { Input } from '../../@/components/ui/input'
 import { Button } from '../../@/components/ui/button'
 import { useRouter } from 'next/navigation';
+
+interface formData {
+    username: string,
+    email: string,
+    password: string
+}
 
 export default function SignUp() {
 
@@ -20,11 +26,13 @@ export default function SignUp() {
     }
   }
 `
-    const [formData, setFormData] = useState({})
+    const [formData, setFormData] = useState<formData>({
+        email: '', password: '', username: ''
+    })
 
     const [signUp, { data, loading, error }] = useMutation(SIGN_UP_MUTATION);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         // console.log('asd')
         e.preventDefault();
         try {
@@ -36,7 +44,7 @@ export default function SignUp() {
         }
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
     };
 

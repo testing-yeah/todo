@@ -1,6 +1,21 @@
 import { TODO_MUTATION } from "../graphQL/getQueryGql/getTodo";
 
-export async function createTodo({ title, description, token }) {
+interface createTodo {
+    title: string,
+    description: string,
+    token: string
+}
+
+interface TodoData {
+    createTodo: {
+        id: string;
+        title: string;
+        description: string;
+        completed: boolean;
+    };
+}
+
+export async function createTodo({ title, description, token }: createTodo): Promise<TodoData> {
     const response = await fetch(`http://localhost:8000/graphql`, {
         method: "POST",
         headers: {

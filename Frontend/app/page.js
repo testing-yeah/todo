@@ -2,9 +2,9 @@
 import React from 'react'
 import AddTodoFrom from '../components/addTodo'
 import { useQuery } from '@tanstack/react-query';
-import TodoNotes from '../components/todoNotes'
 import getTodo from '../todoRequest/getTodo'
 import Cookies from 'js-cookie'
+import TodoNotes from '../components/todoNotes';
 
 function App() {
   const token = Cookies.get('sessionId')

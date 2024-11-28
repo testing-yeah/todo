@@ -9,21 +9,9 @@ const typeDefs = gql`
     imageUrl: String
     email: String!
     password: String!
-    sessionToken: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-    tokens: [Token!]!
     todos: [Todo!]!
-  }
-
-  type Token {
-    id: ID!
-    token: String!
-    userId: String!
-    expiresAt: DateTime!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    user: User!
   }
 
   type Todo {
@@ -47,24 +35,19 @@ const typeDefs = gql`
     getTodoByUser: [Todo!]!
   }
 
-type Mutation {
+ type Mutation {
   createUser(username: String!, email: String!, password: String!): User!
   loginUser(email: String!, password: String!): LoginResponse!
   createTodo(title: String!, description: String!): Todo!
   updateTodo(id: ID!,title: String!,description:String!,completed:Boolean!): Todo!
   deleteTodo(id: ID!): Boolean!
   getTodoById(id:ID!):Todo!
-  createToken(userId: String!, token: String!, expiresAt: DateTime!): Token!
-}
-
-type AuthPayload {
-  token: String!
-  user: User!
-}
+  completedTodo(id:ID!,completed:Boolean!):Todo!
+ }
   
   type LoginResponse {
-  user: User!
-  sessionToken: String!
-}`;
+    user: User!
+    token: String!
+  }`;
 
 export default typeDefs;

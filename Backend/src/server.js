@@ -7,6 +7,7 @@ import typeDefs from '../src/graphQL/typeDefs.js';
 import resolvers from '../src/graphQL/resolvers/index.js';
 import prisma from '../prisma/client.js';
 import Cookies from 'js-cookie'
+import jwt from 'jsonwebtoken'
 
 dotenv.config({ path: './.env' });
 
@@ -17,14 +18,30 @@ app.use(cookieParser());
 app.options('*', cors());
 app.use(cors({
     origin: 'http://localhost:5000',
+    // credentials: true,
+    // exposedHeaders: ['Authorization'],
 }));
 
 const validateSession = async (sessionToken) => {
-    if (!sessionToken) return null;
-    const user = await prisma.user.findUnique({ where: { sessionToken } });
-    if (!user || !user.expiresAt || new Date(user.expiresAt) < new Date()) return null;
-    return user;
+    if (!sessionToken) {
+        console.error('Session token not provided');
+        return null;
+    }
+
+    try {
+        const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET);
+        const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+        if (!user) {
+            console.error('No user found for the provided token');
+            return null;
+        }
+        return user;
+    } catch (error) {
+        console.error('Invalid or expired token:', error.message);
+        return null;
+    }
 };
+
 
 const server = new ApolloServer({
     typeDefs,
@@ -36,19 +53,12 @@ const server = new ApolloServer({
     },
 });
 
-// app.get('/api/check-session', async (req, res) => {
-//     const sessionToken = req.cookies.sessionId;
-//     const user = await validateSession(sessionToken);
-//     if (!user) return res.status(401).json({ message: 'Session expired or invalid' });
-//     return res.status(200).json({ message: 'Session valid', user });
-// });
-
 app.post('/logout', (req, res) => {
     const { sessionId } = req.body;
     if (!sessionId) {
         return res.status(400).json({ message: "Session ID is required" });
     }
-    
+
     try {
         Cookies.remove('sessionId');
         res.status(200).json({ message: "Logged out successfully" });

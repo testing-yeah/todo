@@ -1,6 +1,12 @@
 import { GET_USER } from '../graphQL/getUserGql/getUser'
 
-export async function getUser(token) {
+interface userData {
+    id: string,
+    username: string,
+    email: string
+}
+
+export async function getUser(token: string): Promise<userData> {
     const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {
@@ -21,6 +27,6 @@ export async function getUser(token) {
     if (result.errors) {
         throw new Error('GraphQL errors occurred');
     }
-    return result.data.getUserProfile; // Return the data directly
+    return result.data.getUserProfile;
 }
 

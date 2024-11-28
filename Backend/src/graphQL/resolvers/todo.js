@@ -9,10 +9,6 @@ export default {
                 throw new Error('User not found');
             }
 
-            if (!findUser.expiresAt || new Date(user.expiresAt) < new Date()) {
-                throw new Error('Session expired');
-            }
-
             const TodoData = await prisma.todo.findMany({
                 where: { userId: findUser.id }
             })
@@ -28,10 +24,6 @@ export default {
 
             if (!findUser) {
                 throw new Error('User not found');
-            }
-
-            if (!findUser.expiresAt || new Date(user.expiresAt) < new Date()) {
-                throw new Error('Session expired');
             }
 
             try {
@@ -59,10 +51,6 @@ export default {
                 throw new Error('User not found');
             }
 
-            if (!findUser.expiresAt || new Date(user.expiresAt) < new Date()) {
-                throw new Error('Session expired');
-            }
-
             const todo = await prisma.todo.findUnique({ where: { id } });
 
             if (!todo) {
@@ -78,22 +66,12 @@ export default {
         },
 
         getTodoById: async (_, { id }, { user, prisma }) => {
-            const sessionToken = user.sessionToken
-
-            if (!sessionToken) {
-                throw new Error('Session Token Is Missing')
-            }
-
             const findUser = await prisma.user.findUnique({
-                where: { sessionToken },
+                where: { id: user.id },
             });
 
             if (!findUser) {
                 throw new Error('User not found');
-            }
-
-            if (!findUser.expiresAt || new Date(user.expiresAt) < new Date()) {
-                throw new Error('Session expired');
             }
 
             try {
@@ -108,22 +86,12 @@ export default {
         },
 
         updateTodo: async (_, { id, title, description, completed }, { user, prisma }) => {
-            const sessionToken = user.sessionToken
-
-            if (!sessionToken) {
-                throw new Error('Session Token Is Missing')
-            }
-
             const findUser = await prisma.user.findUnique({
-                where: { sessionToken },
+                where: { id: user.id },
             });
 
             if (!findUser) {
                 throw new Error('User not found');
-            }
-
-            if (!findUser.expiresAt || new Date(user.expiresAt) < new Date()) {
-                throw new Error('Session expired');
             }
 
             try {
@@ -141,6 +109,32 @@ export default {
             } catch (error) {
                 console.log('Error To Update Todo', error)
             }
+        },
+
+        completedTodo: async (_, { id, completed }, { user, prisma }) => {
+            const findUser = await prisma.user.findUnique({
+                where: { id: user.id }
+            })
+
+            if (!findUser) {
+                throw new Error('Unauthorized User')
+            }
+
+            const findTodo = await prisma.todo.update({
+                where: { id },
+                data: { completed },
+            })
+            if (!findTodo) {
+                return
+            }
+
+            const sortedTodos = await prisma.todo.findMany({
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+
+            return sortedTodos
         }
     },
 };

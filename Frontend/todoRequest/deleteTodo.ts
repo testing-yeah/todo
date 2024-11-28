@@ -1,6 +1,11 @@
 import { DELETE_TODO_MUTATION } from "../graphQL/getQueryGql/getTodo";
 
-export async function deleteTodo({ id, token }) {
+interface todoParam {
+    id: string,
+    token: string
+}
+
+export async function deleteTodo({ id, token }: todoParam) {
     const response = await fetch(`http://localhost:8000/graphql`, {
         method: "POST",
         headers: {

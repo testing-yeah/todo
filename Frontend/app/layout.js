@@ -1,9 +1,9 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import ApolloProviderCompo from './apolloProvider'
-import { ThemeProviderCompo } from './../components/themeProvider'
-import Header from './../components/header'
-import ProtectedRoute from './../components/protectedRoute'
+import ThemeProviderCompo from '../components/themeProvider'
+import Header from '../components/header'
+import { ApolloProviderCompo } from "./apolloProvider";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -34,10 +34,7 @@ export default function RootLayout({ children }) {
         >
           <ApolloProviderCompo>
             <Header />
-
-            <ProtectedRoute>
-              {children}
-            </ProtectedRoute>
+            {children}
           </ApolloProviderCompo>
         </ThemeProviderCompo>
       </body>

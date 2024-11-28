@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { ApolloClient, ApolloProvider, InMemoryCache, from, createHttpLink, split } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { setContext } from '@apollo/client/link/context';
@@ -10,8 +10,10 @@ import { createClient } from 'graphql-ws';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient()
-
-function ApolloProviderCompo({ children }) {
+interface ApolloProviderCompoProps {
+    children: ReactNode;
+}
+export function ApolloProviderCompo({ children }: ApolloProviderCompoProps) {
     const errorLink = onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors) {
             graphQLErrors.forEach(({ message, locations, path }) =>
@@ -27,6 +29,7 @@ function ApolloProviderCompo({ children }) {
 
     const authLink = setContext((_, { headers }) => {
         const token = Cookies.get('sessionId');
+
         return {
             headers: {
                 ...headers,
@@ -69,5 +72,3 @@ function ApolloProviderCompo({ children }) {
         </QueryClientProvider>
     );
 }
-
-export default ApolloProviderCompo;
