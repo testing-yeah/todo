@@ -1,4 +1,5 @@
 import prisma from "../../../prisma/client.js";
+import jwt from "jsonwebtoken";
 
 const todoResolvers = {
     Query: {
@@ -11,15 +12,15 @@ const todoResolvers = {
             }
         },
 
-        getUserTodos: async (_, { userId }) => {
+        getUserTodos: async (_, { userId: userToken }) => {
+            const userJwt = jwt.verify(userToken, process.env.JWT_SECRET);
+
             try {
                 const todos = await prisma.todo.findMany({
                     where: {
-                        userId,
+                        userId: userJwt.userId,
                     },
                 });
-
-                console.log("todos", todos);
 
                 return todos;
             } catch (error) {
@@ -30,10 +31,14 @@ const todoResolvers = {
 
     Mutation: {
         // Add a new Todo
-        addTodo: async (_, { userId, title, description, completed }) => {
+        addTodo: async (_, { title, description, token, completed }) => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
+
             try {
                 // Check if the user exists
-                const user = await prisma.user.findUnique({ where: { id: userId } });
+                const user = await prisma.user.findUnique({
+                    where: { id: userJwt.userId },
+                });
 
                 if (!user) {
                     throw new Error("User not found");
@@ -44,8 +49,8 @@ const todoResolvers = {
                     data: {
                         title,
                         description,
-                        completed: completed ?? false, // Default to false if not provided
-                        userId, // Associate the Todo with the user
+                        completed: completed ?? false,
+                        userId: user.id,
                     },
                 });
 
@@ -55,17 +60,12 @@ const todoResolvers = {
             }
         },
 
-        // Edit a Todo
-        editTodo: async (_, { id, userId, title, description, completed }) => {
-            const user = await prisma?.user?.findUnique({ where: { id: userId } });
-
-            if (!user) {
-                throw new Error("User not found");
-            }
+        // Delete a Todo by ID
+        deleteTodo: async (_, { id, token }) => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
 
             try {
-                // Check if the todo exists and belongs to the user
-                const todo = await prisma?.todo?.findUnique({
+                const todo = await prisma.todo.findUnique({
                     where: { id },
                 });
 
@@ -73,56 +73,51 @@ const todoResolvers = {
                     throw new Error("Todo not found");
                 }
 
-                if (todo.userId !== userId) {
-                    throw new Error("You do not have permission to edit this todo");
+                if (todo.userId !== userJwt.userId) {
+                    throw new Error("You are not authorized to delete this todo");
                 }
 
-                // Update the todo
-                const updatedTodo = await prisma?.todo?.update({
+                // Delete the todo
+                await prisma.todo.delete({
+                    where: { id },
+                });
+
+                return true;
+            } catch (error) {
+                throw new Error("Error deleting Todo: " + error.message);
+            }
+        },
+
+        // Edit an existing Todo
+        editTodo: async (_, { id, token, title, description, completed }) => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
+
+            try {
+                const todo = await prisma.todo.findUnique({
+                    where: { id },
+                });
+
+                if (!todo) {
+                    throw new Error("Todo not found");
+                }
+
+                if (todo.userId !== userJwt.userId) {
+                    throw new Error("You are not authorized to edit this todo");
+                }
+
+                // Update the Todo with provided fields
+                const updatedTodo = await prisma.todo.update({
                     where: { id },
                     data: {
-                        title: title || todo.title,
-                        description: description || todo.description,
-                        completed: completed !== undefined ? completed : todo.completed,
+                        title: title ?? todo.title,
+                        description: description ?? todo.description,
+                        completed: completed ?? todo.completed,
                     },
                 });
 
                 return updatedTodo;
             } catch (error) {
                 throw new Error("Error editing Todo: " + error.message);
-            }
-        },
-
-        // Delete a Todo
-        deleteTodo: async (_, { id, userId }) => {
-            const user = await prisma?.user?.findUnique({ where: { id: userId } });
-
-            if (!user) {
-                throw new Error("User not found");
-            }
-
-            try {
-                // Check if the todo exists and belongs to the user
-                const todo = await prisma?.todo?.findUnique({
-                    where: { id },
-                });
-
-                if (!todo) {
-                    throw new Error("Todo not found");
-                }
-
-                if (todo.userId !== userId) {
-                    throw new Error("You do not have permission to delete this todo");
-                }
-
-                // Delete the todo
-                await prisma?.todo?.delete({
-                    where: { id },
-                });
-
-                return true; // Return true if deletion is successful
-            } catch (error) {
-                throw new Error("Error deleting Todo: " + error.message);
             }
         },
     },

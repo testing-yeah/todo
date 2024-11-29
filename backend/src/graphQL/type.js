@@ -26,27 +26,28 @@ const typeDefs = gql`
 
   type Query {
     getTodo: [Todo!]!
-    getUserTodos(userId: Int!): [Todo!]!
+    getUserTodos(userId: String!): [Todo!]!
   }
 
   type Mutation {
+    addTodo(
+      token: String!
+      title: String!
+      description: String!
+      completed: Boolean
+    ): Todo!
+
     register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): String!
     logout: Boolean!
+
+    deleteTodo(id: Int!, token: String!): Boolean!
+
     editTodo(
       id: Int!
-      userId: Int!
+      token: String!
       title: String
       description: String
-      completed: Boolean
-    ): Todo!
-    deleteTodo(id: Int!, userId: Int!): Boolean!
-
-     # Add new addTodo mutation
-    addTodo(
-      userId: Int!
-      title: String!
-      description: String!
       completed: Boolean
     ): Todo!
   }

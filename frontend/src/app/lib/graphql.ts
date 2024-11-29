@@ -56,26 +56,23 @@ export interface LogoutUserResponse {
 }
 
 // Add Todo mutation
-export const ADD_TODO_LIST = gql`
-  mutation AddTodo(
-    $userId: Int!
+export const addTodoMut = gql`
+  mutation addTodo(
     $title: String!
     $description: String!
-    $completed: Boolean
+    $completed: Boolean!
+    $token: String!
   ) {
     addTodo(
-      userId: $userId
       title: $title
       description: $description
       completed: $completed
+      token: $token
     ) {
       id
       title
       description
-      completed
       createdAt
-      updatedAt
-      userId
     }
   }
 `;
@@ -101,7 +98,7 @@ export interface AddTodoVariables {
 
 // all Todo data
 export const GET_USER_TODOS = gql`
-  query GetUserTodos($userId: Int!) {
+  query GetUserTodos($userId: String!) {
     getUserTodos(userId: $userId) {
       id
       title
@@ -124,18 +121,34 @@ export interface GetUserTodosVariables {
   userId: number;
 }
 
+// Delete Todo mutation
+export const DELETE_TODO = gql`
+  mutation DeleteTodo($id: Int!, $token: String!) {
+    deleteTodo(id: $id, token: $token)
+  }
+`;
+
+export interface DeleteTodoResponse {
+  deleteTodo: boolean;
+}
+
+export interface DeleteTodoVariables {
+  id: number;
+  token: string;
+}
+
 // Edit Todo mutation
 export const EDIT_TODO = gql`
   mutation EditTodo(
     $id: Int!
-    $userId: Int!
+    $token: String!
     $title: String
     $description: String
     $completed: Boolean
   ) {
     editTodo(
       id: $id
-      userId: $userId
+      token: $token
       title: $title
       description: $description
       completed: $completed
@@ -145,7 +158,6 @@ export const EDIT_TODO = gql`
       description
       completed
       updatedAt
-      userId
     }
   }
 `;
@@ -157,30 +169,13 @@ export interface EditTodoResponse {
     description: string;
     completed: boolean;
     updatedAt: string;
-    userId: number;
   };
 }
 
 export interface EditTodoVariables {
   id: number;
-  userId: number;
+  token: string;
   title?: string;
   description?: string;
   completed?: boolean;
-}
-
-// Delete Todo mutation
-export const DELETE_TODO = gql`
-  mutation DeleteTodo($id: Int!, $userId: Int!) {
-    deleteTodo(id: $id, userId: $userId)
-  }
-`;
-
-export interface DeleteTodoResponse {
-  deleteTodo: boolean;
-}
-
-export interface DeleteTodoVariables {
-  id: number;
-  userId: number;
 }

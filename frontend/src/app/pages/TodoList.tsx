@@ -22,7 +22,6 @@ const TodoList = ({
           <tr className="bg-indigo-600 text-white">
             <th className="px-4 py-2 text-left">ID</th>
             <th className="px-4 py-2 text-left">Title</th>
-            <th className="px-4 py-2 text-left">Description</th>
             <th className="px-4 py-2 text-left">Status</th>
             <th className="px-4 py-2 text-left">Created At</th>
             <th className="px-4 py-2 text-left">Actions</th>
@@ -40,14 +39,12 @@ const TodoList = ({
               <tr key={todo.id} className="border-b">
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{todo.title}</td>
-                <td className="px-4 py-2">{todo.description}</td>
                 <td className="px-4 py-2">
                   <span
-                    className={`inline-block px-3 py-1 rounded-full ${
-                      todo.completed
+                    className={`inline-block px-3 py-1 rounded-full ${todo.completed
                         ? "bg-green-500 text-white"
                         : "bg-red-500 text-white"
-                    }`}
+                      }`}
                   >
                     {todo.completed ? "Completed" : "Pending"}
                   </span>
