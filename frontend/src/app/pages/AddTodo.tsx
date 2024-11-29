@@ -1,11 +1,202 @@
-import React from 'react'
+"use client";
 
-const AddTodo = () => {
+import { useMutation, useQuery } from "@apollo/client";
+import React, { useState, FormEvent, useEffect } from "react";
+import {
+    ADD_TODO_LIST,
+    AddTodoResponse,
+    AddTodoVariables,
+    GET_USER_TODOS,
+    GetUserTodosResponse,
+    GetUserTodosVariables,
+    EDIT_TODO,
+    DELETE_TODO,
+} from "../lib/graphql";
+import TodoList from "./TodoList";
+
+const AddTodo: React.FC = () => {
+    const [title, setTitle] = useState<string>("");
+    const [description, setDescription] = useState<string>("");
+
+    const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
+
+    const [userTodos, setUserTodos] = useState<
+        GetUserTodosResponse["getUserTodos"]
+    >([]);
+
+    const {
+        data,
+        loading: queryLoading,
+        error,
+    } = useQuery<GetUserTodosResponse, GetUserTodosVariables>(GET_USER_TODOS, {
+        variables: { userId: 1 },
+    });
+
+    // Set the userTodos when data is fetched
+    useEffect(() => {
+        if (data && data?.getUserTodos) {
+            setUserTodos(data.getUserTodos);
+        }
+    }, [data]);
+
+    // Mutation for adding a todo
+    const [addTodo, { loading }] = useMutation<AddTodoResponse, AddTodoVariables>(
+        ADD_TODO_LIST
+    );
+
+    // Mutation for editing a todo
+    const [editTodo] = useMutation(EDIT_TODO);
+
+    // Mutation for deleting a todo
+    const [deleteTodo] = useMutation(DELETE_TODO);
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+
+        try {
+            if (editingTodoId) {
+                // Editing an existing todo
+                const { data } = await editTodo({
+                    variables: {
+                        id: editingTodoId,
+                        userId: 1,
+                        title,
+                        description,
+                    },
+                });
+
+                if (data?.editTodo) {
+                    alert("Todo updated successfully!");
+                    // Update the todo in the userTodos state
+                    setUserTodos((prevTodos) =>
+                        prevTodos.map((todo) =>
+                            todo.id === editingTodoId ? { ...todo, title, description } : todo
+                        )
+                    );
+                    setEditingTodoId(null); // Reset edit state
+                    setTitle("");
+                    setDescription("");
+                }
+            } else {
+                // Adding a new todo
+                const { data } = await addTodo({
+                    variables: { title, description, userId: 1 },
+                });
+
+                if (data?.addTodo) {
+                    alert("Todo added successfully!");
+                    // Append the new todo to the state
+                    setUserTodos([...userTodos, data.addTodo]);
+                    setTitle("");
+                    setDescription("");
+                }
+            }
+        } catch (error) {
+            console.log("Error handling todo:", error);
+        }
+    };
+
+    const handleEdit = (id: number) => {
+        const todoToEdit = userTodos.find((todo) => todo.id === id);
+        if (todoToEdit) {
+            setEditingTodoId(id);
+            setTitle(todoToEdit.title);
+            setDescription(todoToEdit.description);
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            const { data } = await deleteTodo({
+                variables: { id, userId: 1 },
+            });
+
+            if (data?.deleteTodo) {
+                alert("Todo deleted successfully!");
+                setUserTodos(userTodos.filter((todo) => todo.id !== id));
+            } else {
+                console.log("Failed to delete todo");
+            }
+        } catch (error) {
+            console.log("Error deleting todo:", error);
+        }
+    };
+
     return (
-        <div>
-            AddTodo
-        </div>
-    )
-}
+        <>
+            <div className="flex justify-center items-center px-4 sm:px-6 lg:px-8 my-10">
+                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
+                    <h2 className="text-3xl font-bold text-center text-gray-900">
+                        {editingTodoId ? "Edit Todo" : "Add Todo"}
+                    </h2>
 
-export default AddTodo
+                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                        <div className="rounded-md shadow-sm -space-y-px">
+                            <div>
+                                <label htmlFor="title" className="sr-only">
+                                    Title
+                                </label>
+                                <input
+                                    id="title"
+                                    name="title"
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    required
+                                    className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Title"
+                                />
+                            </div>
+
+                            <div className="mt-4">
+                                <label htmlFor="description" className="sr-only">
+                                    Description
+                                </label>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    required
+                                    rows={4}
+                                    className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    placeholder="Description"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="group relative w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            >
+                                {loading
+                                    ? "Saving..."
+                                    : editingTodoId
+                                        ? "Update Todo"
+                                        : "Add Todo"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {queryLoading ? (
+                <div className="text-center">Loading todos...</div>
+            ) : error ? (
+                <div className="text-center text-red-500">Error loading todos</div>
+            ) : (
+                <div className="mx-20 border-2 border-black mb-10">
+                    <TodoList
+                        userTodos={userTodos}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+                </div>
+            )}
+        </>
+    );
+};
+
+export default AddTodo;

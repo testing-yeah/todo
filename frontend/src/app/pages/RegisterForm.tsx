@@ -4,20 +4,11 @@ import { useMutation } from "@apollo/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { REGISTER_USER } from "../lib/graphql";
-
-// Define types for the mutation response and variables
-interface RegisterUserResponse {
-    register: {
-        token: string;
-    };
-}
-
-interface RegisterUserVariables {
-    email: string;
-    password: string;
-    username: string;
-}
+import {
+    REGISTER_USER,
+    RegisterUserResponse,
+    RegisterUserVariables,
+} from "../lib/graphql";
 
 const RegisterForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");

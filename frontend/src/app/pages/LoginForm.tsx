@@ -4,17 +4,12 @@ import { useMutation } from "@apollo/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { LOGIN_USER } from "../lib/graphql";
-
-// Define types for the mutation response and variables
-interface LoginUserResponse {
-    login: string;
-}
-
-interface LoginUserVariables {
-    email: string;
-    password: string;
-}
+import {
+    LOGIN_USER,
+    LoginUserResponse,
+    LoginUserVariables,
+} from "../lib/graphql";
+import Cookies from "js-cookie";
 
 const LoginForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");
@@ -35,13 +30,10 @@ const LoginForm: React.FC = () => {
                 variables: { email, password },
             });
 
-            console.log("Logged in successfully:", data?.login);
-
-            const token = data?.login;
-
-            if (token) {
-                localStorage.setItem("token", token);
-                router.push("/");
+            if (data?.login) {
+                localStorage.setItem("token", data?.login);
+                Cookies.set("token", data?.login, { expires: 7, secure: true });
+                router.replace("/");
             }
         } catch (err) {
             console.error("Error during login:", err);
