@@ -179,3 +179,32 @@ export interface EditTodoVariables {
   description?: string;
   completed?: boolean;
 }
+
+// Get Todo by ID query
+export const GET_TODO_BY_ID = gql`
+  query GetTodoById($id: Int!) {
+    getTodoById(id: $id) {
+      id
+      title
+      description
+      completed
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export interface GetTodoByIdResponse {
+  getTodoById: {
+    id: number;
+    title: string;
+    description: string;
+    completed: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface GetTodoByIdVariables {
+  id: number;
+}

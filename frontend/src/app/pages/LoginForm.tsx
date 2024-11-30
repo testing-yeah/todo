@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation } from "@apollo/client";
+import Cookies from "js-cookie";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -9,7 +10,6 @@ import {
     LoginUserResponse,
     LoginUserVariables,
 } from "../lib/graphql";
-import Cookies from "js-cookie";
 
 const LoginForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");

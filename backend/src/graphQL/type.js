@@ -26,6 +26,7 @@ const typeDefs = gql`
 
   type Query {
     getTodo: [Todo!]!
+    getTodoById(id: Int!): Todo
     getUserTodos(userId: String!): [Todo!]!
   }
 

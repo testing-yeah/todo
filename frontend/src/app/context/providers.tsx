@@ -1,6 +1,5 @@
 "use client";
 
-import React, { ReactNode } from "react";
 import {
     ApolloClient,
     ApolloProvider,
@@ -14,6 +13,7 @@ import { onError } from "@apollo/client/link/error";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { createClient } from "graphql-ws";
+import React, { ReactNode } from "react";
 
 // Define the type for props
 interface ApolloProviderCompoProps {

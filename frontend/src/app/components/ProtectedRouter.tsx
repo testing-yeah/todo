@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, ReactNode } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
 
 interface ProtectedRouterProps {
     children: ReactNode;

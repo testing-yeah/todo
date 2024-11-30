@@ -3,9 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../../../prisma/client.js";
 
 const userResolvers = {
-    Query: {
-        // hello world
-    },
+    Query: {},
 
     Mutation: {
         register: async (_, { email, password, username }) => {

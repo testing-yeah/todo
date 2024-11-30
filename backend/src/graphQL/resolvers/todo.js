@@ -27,6 +27,23 @@ const todoResolvers = {
                 throw new Error("Error fetching todos for user: " + error.message);
             }
         },
+
+        getTodoById: async (_, { id }) => {
+            try {
+                // Find the todo by its ID
+                const todo = await prisma.todo.findUnique({
+                    where: { id },
+                });
+
+                if (!todo) {
+                    throw new Error("Todo not found");
+                }
+
+                return todo;
+            } catch (error) {
+                throw new Error("Error fetching todo by ID: " + error.message);
+            }
+        },
     },
 
     Mutation: {

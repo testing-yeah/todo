@@ -1,4 +1,4 @@
-import React from "react";
+import { useRouter } from "next/navigation";
 
 const TodoList = ({
   userTodos,
@@ -15,6 +15,16 @@ const TodoList = ({
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }) => {
+  const router = useRouter();
+
+  const handleViewClick = (todo: {
+    id: number;
+    title: string;
+    description: string;
+  }) => {
+    router.push(`/todos/${todo.id}`);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full table-auto border-collapse">
@@ -25,6 +35,7 @@ const TodoList = ({
             <th className="px-4 py-2 text-left">Status</th>
             <th className="px-4 py-2 text-left">Created At</th>
             <th className="px-4 py-2 text-left">Actions</th>
+            <th className="px-4 py-2 text-left">View</th>
           </tr>
         </thead>
         <tbody>
@@ -42,8 +53,8 @@ const TodoList = ({
                 <td className="px-4 py-2">
                   <span
                     className={`inline-block px-3 py-1 rounded-full ${todo.completed
-                        ? "bg-green-500 text-white"
-                        : "bg-red-500 text-white"
+                      ? "bg-green-500 text-white"
+                      : "bg-red-500 text-white"
                       }`}
                   >
                     {todo.completed ? "Completed" : "Pending"}
@@ -64,6 +75,14 @@ const TodoList = ({
                     onClick={() => onDelete(todo.id)}
                   >
                     Delete
+                  </button>
+                </td>
+                <td className="px-4 py-2">
+                  <button
+                    onClick={() => handleViewClick(todo)}
+                    className="text-blue-500 hover:text-blue-700 underline"
+                  >
+                    View
                   </button>
                 </td>
               </tr>

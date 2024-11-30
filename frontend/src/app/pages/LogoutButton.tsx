@@ -1,10 +1,10 @@
 "use client";
 
 import { useMutation } from "@apollo/client";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { LOGOUT_USER, LogoutUserResponse } from "../lib/graphql";
-import Cookies from "js-cookie";
 
 const LogoutButton: React.FC = () => {
     const [logout, { loading }] = useMutation<LogoutUserResponse>(LOGOUT_USER);
