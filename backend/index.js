@@ -1,13 +1,13 @@
 import { ApolloServer } from "apollo-server-express";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import prisma from "./prisma/client.js";
-import { userResolvers } from "./src/graphQL/resolvers/user.js";
-import { todoResolvers } from "./src/graphQL/resolvers/todo.js";
-import { typeDefs } from "./src/graphQL/type.js";
-import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import prisma from "./prisma/client.js";
+import { todoResolvers } from "./src/graphQL/resolvers/todo.js";
+import { userResolvers } from "./src/graphQL/resolvers/user.js";
+import { typeDefs } from "./src/graphQL/type.js";
 
 dotenv.config();
 

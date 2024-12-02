@@ -1,5 +1,5 @@
-import prisma from "../../../prisma/client.js";
 import jwt from "jsonwebtoken";
+import prisma from "../../../prisma/client.js";
 
 const todoResolvers = {
     Query: {

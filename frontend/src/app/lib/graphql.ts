@@ -94,6 +94,7 @@ export interface AddTodoVariables {
   title: string;
   description: string;
   completed?: boolean;
+  token: string;
 }
 
 // all Todo data
@@ -103,6 +104,7 @@ export const GET_USER_TODOS = gql`
       id
       title
       description
+      completed
       createdAt
     }
   }
@@ -113,6 +115,7 @@ export interface GetUserTodosResponse {
     id: number;
     title: string;
     description: string;
+    completed: boolean;
     createdAt: string;
   }[];
 }

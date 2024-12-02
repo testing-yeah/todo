@@ -9,6 +9,8 @@ import {
     RegisterUserResponse,
     RegisterUserVariables,
 } from "../lib/graphql";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RegisterForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");
@@ -32,9 +34,11 @@ const RegisterForm: React.FC = () => {
 
             if (data?.register) {
                 router.push("/login");
+                toast.success("Registration successful!");
             }
         } catch (err) {
             console.error("Error during registration:", err);
+            toast.error("Registration failed. Please try again.");
         }
     };
 
@@ -116,6 +120,8 @@ const RegisterForm: React.FC = () => {
                     </p>
                 </div>
             </form>
+
+            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
         </div>
     );
 };

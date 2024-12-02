@@ -1,9 +1,10 @@
 import { useRouter } from "next/navigation";
+import moment from "moment";
 
 const TodoList = ({
   userTodos,
-  onEdit,
   onDelete,
+  onToggleCompleted,
 }: {
   userTodos: {
     id: number;
@@ -12,8 +13,8 @@ const TodoList = ({
     completed: boolean;
     createdAt: string;
   }[];
-  onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onToggleCompleted: (id: number, completed: boolean) => void;
 }) => {
   const router = useRouter();
 
@@ -36,6 +37,7 @@ const TodoList = ({
             <th className="px-4 py-2 text-left">Created At</th>
             <th className="px-4 py-2 text-left">Actions</th>
             <th className="px-4 py-2 text-left">View</th>
+            <th className="px-4 py-2 text-left"></th>
           </tr>
         </thead>
         <tbody>
@@ -53,23 +55,17 @@ const TodoList = ({
                 <td className="px-4 py-2">
                   <span
                     className={`inline-block px-3 py-1 rounded-full ${todo.completed
-                      ? "bg-green-500 text-white"
-                      : "bg-red-500 text-white"
+                        ? "bg-green-500 text-white"
+                        : "bg-red-500 text-white"
                       }`}
                   >
                     {todo.completed ? "Completed" : "Pending"}
                   </span>
                 </td>
                 <td className="px-4 py-2">
-                  {new Date(todo.createdAt).toLocaleDateString()}
+                  {moment(todo.createdAt).format("MMMM DD, YYYY")}
                 </td>
                 <td className="px-4 py-2">
-                  <button
-                    className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-                    onClick={() => onEdit(todo.id)}
-                  >
-                    Edit
-                  </button>
                   <button
                     className="px-4 py-2 bg-red-500 text-white rounded"
                     onClick={() => onDelete(todo.id)}
@@ -84,6 +80,15 @@ const TodoList = ({
                   >
                     View
                   </button>
+                </td>
+                <td className="px-4 py-2">
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    onChange={(e) =>
+                      onToggleCompleted(todo.id, e.target.checked)
+                    }
+                  />
                 </td>
               </tr>
             ))

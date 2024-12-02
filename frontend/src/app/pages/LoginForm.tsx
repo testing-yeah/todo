@@ -10,6 +10,8 @@ import {
     LoginUserResponse,
     LoginUserVariables,
 } from "../lib/graphql";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");
@@ -33,10 +35,12 @@ const LoginForm: React.FC = () => {
             if (data?.login) {
                 localStorage.setItem("token", data?.login);
                 Cookies.set("token", data?.login, { expires: 7, secure: true });
+                toast.success("Login successful!");
                 router.replace("/");
             }
         } catch (err) {
             console.error("Error during login:", err);
+            toast.error("Invalid email or password. Please try again.");
         }
     };
 
@@ -101,6 +105,8 @@ const LoginForm: React.FC = () => {
                     </p>
                 </div>
             </form>
+
+            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
         </div>
     );
 };

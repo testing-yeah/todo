@@ -15,13 +15,15 @@ import {
     addTodoMut,
 } from "../lib/graphql";
 import TodoList from "./TodoList";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddTodo: React.FC = () => {
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const sessionid = localStorage.getItem("token");
+    const [completed, setCompleted] = useState<boolean>(false);
 
-    const [editingTodoId, setEditingTodoId] = useState<number | null>(null);
+    const sessionid = localStorage.getItem("token");
 
     const [userTodos, setUserTodos] = useState<
         GetUserTodosResponse["getUserTodos"]
@@ -55,45 +57,21 @@ const AddTodo: React.FC = () => {
     // Mutation for editing a todo
     const [editTodo] = useMutation(EDIT_TODO);
 
-    const handleSubmit = async (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
-            if (editingTodoId) {
-                // Editing an existing todo
-                const { data } = await editTodo({
-                    variables: {
-                        id: editingTodoId,
-                        token: sessionid,
-                        title,
-                        description,
-                    },
-                });
+            // Adding a new todo
+            const { data } = await addTodo({
+                variables: { title, description, token: sessionid, completed },
+            });
 
-                if (data?.editTodo) {
-                    alert("Todo updated successfully!");
-                    setUserTodos((prevTodos) =>
-                        prevTodos.map((todo) =>
-                            todo.id === editingTodoId ? { ...todo, title, description } : todo
-                        )
-                    );
-                    setEditingTodoId(null);
-                    setTitle("");
-                    setDescription("");
-                }
-            } else {
-                // Adding a new todo
-                const { data } = await addTodo({
-                    variables: { title, description, token: sessionid, completed: false },
-                });
-
-                if (data?.addTodo) {
-                    alert("Todo added successfully!");
-                    // Append the new todo to the state
-                    setUserTodos([...userTodos, data.addTodo]);
-                    setTitle("");
-                    setDescription("");
-                }
+            if (data?.addTodo) {
+                toast.success("Todo added successfully!");
+                setUserTodos((prevTodos) => [...prevTodos, data.addTodo]);
+                setTitle("");
+                setDescription("");
+                setCompleted(false);
             }
         } catch (error) {
             console.log("Error handling todo:", error);
@@ -109,29 +87,49 @@ const AddTodo: React.FC = () => {
 
             if (data?.deleteTodo) {
                 // Remove deleted todo from the userTodos state
-                setUserTodos(userTodos.filter((todo) => todo.id !== id));
-                alert("Todo deleted successfully!");
+                setUserTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+                toast.success("Todo deleted successfully!");
             }
         } catch (error) {
             console.log("Error deleting todo:", error);
         }
     };
 
-    const handleEdit = (id: number) => {
-        const todoToEdit = userTodos.find((todo) => todo.id === id);
-        if (todoToEdit) {
-            setEditingTodoId(id);
-            setTitle(todoToEdit.title);
-            setDescription(todoToEdit.description);
+    const handleToggleCompleted = async (id: number, completed: boolean) => {
+        try {
+            const todoToUpdate = userTodos.find((todo) => todo.id === id);
+
+            if (todoToUpdate) {
+                const { data } = await editTodo({
+                    variables: {
+                        id,
+                        token: sessionid,
+                        title: todoToUpdate.title,
+                        description: todoToUpdate.description,
+                        completed,
+                    },
+                });
+
+                if (data?.editTodo) {
+                    setUserTodos((prevTodos) =>
+                        prevTodos.map((todo) =>
+                            todo.id === id ? { ...todo, completed } : todo
+                        )
+                    );
+                }
+            }
+        } catch (error) {
+            console.log("Error toggling completion:", error);
         }
     };
 
     return (
         <>
+            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
             <div className="flex justify-center items-center px-4 sm:px-6 lg:px-8 my-10">
                 <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">
                     <h2 className="text-3xl font-bold text-center text-gray-900">
-                        {editingTodoId ? "Edit Todo" : "Add Todo"}
+                        Add Todo
                     </h2>
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -175,11 +173,7 @@ const AddTodo: React.FC = () => {
                                 disabled={loading}
                                 className="group relative w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             >
-                                {loading
-                                    ? "Saving..."
-                                    : editingTodoId
-                                        ? "Update Todo"
-                                        : "Add Todo"}
+                                {loading ? "Saving..." : "Add Todo"}
                             </button>
                         </div>
                     </form>
@@ -195,7 +189,7 @@ const AddTodo: React.FC = () => {
                     <TodoList
                         userTodos={userTodos}
                         onDelete={handleDelete}
-                        onEdit={handleEdit}
+                        onToggleCompleted={handleToggleCompleted}
                     />
                 </div>
             )}
