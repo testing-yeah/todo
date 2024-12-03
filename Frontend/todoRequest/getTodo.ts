@@ -1,15 +1,14 @@
-import { GET_TODO_QUERY } from '../graphQL/getQueryGql/getTodo';
+
 
 export default async function getTodo(token: string) {
-    const response = await fetch('http://localhost:8000/graphql', {
+    const response = await fetch('http://localhost:8000/api/gettodo', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            Authorization: token ? `${token}` : '',
         },
-        body: JSON.stringify({
-            query: GET_TODO_QUERY,
-        }),
+        body: JSON.stringify(
+            token
+        ),
     });
 
     if (!response.ok) {
@@ -21,6 +20,6 @@ export default async function getTodo(token: string) {
     if (result.errors) {
         throw new Error('GraphQL errors occurred');
     }
-    return result.data; // Return the data directly
+    return result.data;
 }
 

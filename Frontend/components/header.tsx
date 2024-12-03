@@ -50,7 +50,7 @@ const Header: React.FC = () => {
                     {
                         data ? (
                             <div className="flex gap-3 items-center">
-                                <span>{data.username}</span>
+                                <span>{data && data?.username}</span>
                                 <Button className="px-3 bg-red-600 text-white hover:bg-gray-600" onClick={handleLogout}>
                                     SignOut
                                 </Button>

@@ -1,11 +1,12 @@
 'use client'
-import { gql, useMutation } from '@apollo/client';
 import { FormEvent, useEffect, useState, ChangeEvent } from 'react';
 import { Label } from '../../@/components/ui/label'
 import { Form } from '../../@/components/ui/form'
 import { Input } from '../../@/components/ui/input'
 import { Button } from '../../@/components/ui/button'
 import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+import { signUpUser } from '../../userRequests/signUp';
 
 interface formData {
     username: string,
@@ -17,26 +18,23 @@ export default function SignUp() {
 
     const router = useRouter()
 
-    const SIGN_UP_MUTATION = gql`
-  mutation createUser($username:String!,$email:String!,$password:String!){
-    createUser(username: $username, email: $email, password: $password){
-    id
-    username
-    email
-    }
-  }
-`
     const [formData, setFormData] = useState<formData>({
         email: '', password: '', username: ''
     })
 
-    const [signUp, { data, loading, error }] = useMutation(SIGN_UP_MUTATION);
+    const { mutate, data } = useMutation({
+        mutationFn: signUpUser
+    })
 
     const handleSubmit = async (e: FormEvent) => {
-        // console.log('asd')
         e.preventDefault();
         try {
-            const res = await signUp({ variables: { ...formData } });
+            const res = mutate({ ...formData }, {
+                onSuccess: () => {
+                    router.push('/login')
+                }
+            });
+            console.log('response data', res);
             alert('User created successfully!');
         } catch (err) {
             console.error(err);

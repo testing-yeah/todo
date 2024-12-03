@@ -19,11 +19,17 @@ interface TodoItem {
 interface TodoNotesProps {
     data: TodoItem;
 }
+
+interface data {
+    id: string,
+    completed: Boolean
+}
+
 function TodoNotes({ data }: TodoNotesProps) {
     const router = useRouter()
-    const deleteBtn = useRef<HTMLButtonElement>(null)
+    const deleteBtn = useRef<HTMLDivElement>(null)
     const queryClient = useQueryClient()
-    const token = Cookies.get('sessionId')
+    const token = Cookies.get('sessionId') || ''
 
     const { mutate } = useMutation({
         mutationKey: ['fetchTodos'],
@@ -35,7 +41,7 @@ function TodoNotes({ data }: TodoNotesProps) {
             mutate({ id, token }, {
                 onSuccess: () => {
                     console.log('Deleted Successfully')
-                    queryClient.invalidateQueries(['GET_TODO_QUERY'] as any)
+                    queryClient.invalidateQueries(['getTodoByUser'], token)
                 },
                 onError: (err) => {
                     console.log('Error Deleting', err)
@@ -57,7 +63,7 @@ function TodoNotes({ data }: TodoNotesProps) {
         mutationFn: completeTodo
     })
 
-    function handleCompleteTask(id, completed) {
+    function handleCompleteTask(id: string, completed: boolean) {
         mutateCompleted({ id, completed: !completed, token }, {
             onSuccess: (data) => {
                 queryClient.invalidateQueries(['fetchTodos'] as any)

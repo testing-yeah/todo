@@ -1,3 +1,6 @@
+import { UPDATE_TODO } from "../graphQL/getQueryGql/getTodoGql.js"
+
+
 interface todoForm {
     id: string,
     title: string,
@@ -8,13 +11,20 @@ interface todoForm {
 
 export async function editTodoFun({ id, title, description, completed, token }: todoForm) {
     console.log(id)
-    const response = await fetch(`http://localhost:8000/api/updatetodo`, {
+    const response = await fetch(`http://localhost:8000/graphql`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
+            Authorization: token ? `${token}` : ''
         },
         body: JSON.stringify({
-            id, title, description, completed, token
+            query: UPDATE_TODO,
+            variables: {
+                id,
+                title,
+                description,
+                completed
+            }
         })
     })
 
@@ -28,5 +38,5 @@ export async function editTodoFun({ id, title, description, completed, token }: 
         throw new Error('Error in grapql')
     }
 
-    return result
+    return result.data
 }

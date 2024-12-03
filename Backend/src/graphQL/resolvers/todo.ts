@@ -1,6 +1,25 @@
-export default {
+import { PrismaClient, Todo, User } from '@prisma/client';
+import { GraphQLResolveInfo } from 'graphql';
+
+export interface Context {
+    user: User;
+    prisma: PrismaClient;
+}
+
+interface TodoInput {
+    id?: string;
+    title?: string;
+    description?: string;
+    completed?: boolean;
+}
+
+const resolvers = {
     Query: {
-        getTodoByUser: async (_, __, { user, prisma }) => {
+        getTodoByUser: async (
+            _: unknown,
+            __: unknown,
+            { user, prisma }: Context
+        ): Promise<Todo[]> => {
             const findUser = await prisma.user.findUnique({
                 where: { id: user.id },
             });
@@ -9,15 +28,20 @@ export default {
                 throw new Error('User not found');
             }
 
-            const TodoData = await prisma.todo.findMany({
-                where: { userId: findUser.id }
-            })
-            return TodoData
+            const todoData = await prisma.todo.findMany({
+                where: { userId: findUser.id },
+            });
+
+            return todoData;
         },
     },
 
     Mutation: {
-        createTodo: async (_, { title, description }, { user, prisma }) => {
+        createTodo: async (
+            _: unknown,
+            { title, description }: { title: string; description: string },
+            { user, prisma }: Context
+        ): Promise<Todo> => {
             const findUser = await prisma.user.findUnique({
                 where: { id: user.id },
             });
@@ -42,7 +66,11 @@ export default {
             }
         },
 
-        deleteTodo: async (_, { id }, { user, prisma }) => {
+        deleteTodo: async (
+            _: unknown,
+            { id }: { id: string },
+            { user, prisma }: Context
+        ): Promise<string> => {
             const findUser = await prisma.user.findUnique({
                 where: { id: user.id },
             });
@@ -54,18 +82,23 @@ export default {
             const todo = await prisma.todo.findUnique({ where: { id } });
 
             if (!todo) {
-                throw new Error("Todo not found");
+                throw new Error('Todo not found');
             }
 
             try {
                 await prisma.todo.delete({ where: { id } });
+                return 'Todo deleted successfully';
             } catch (error) {
-                console.error('Error creating todo:', error);
-                throw new Error('Error creating todo');
+                console.error('Error deleting todo:', error);
+                throw new Error('Error deleting todo');
             }
         },
 
-        getTodoById: async (_, { id }, { user, prisma }) => {
+        getTodoById: async (
+            _: unknown,
+            { id }: { id: string },
+            { user, prisma }: Context
+        ): Promise<Todo | null> => {
             const findUser = await prisma.user.findUnique({
                 where: { id: user.id },
             });
@@ -76,16 +109,21 @@ export default {
 
             try {
                 const findedTodo = await prisma.todo.findUnique({
-                    where: { id }
-                })
+                    where: { id },
+                });
 
-                return findedTodo
+                return findedTodo;
             } catch (error) {
-                console.log('Error To Finding Todo By id', error)
+                console.error('Error finding Todo by ID:', error);
+                return null;
             }
         },
 
-        updateTodo: async (_, { id, title, description, completed }, { user, prisma }) => {
+        updateTodo: async (
+            _: unknown,
+            { id, title, description, completed }: TodoInput,
+            { user, prisma }: Context
+        ): Promise<Todo> => {
             const findUser = await prisma.user.findUnique({
                 where: { id: user.id },
             });
@@ -96,36 +134,41 @@ export default {
 
             try {
                 const updatedTodo = await prisma.todo.update({
-                    where: { id },
+                    where: { id: id as string },
                     data: {
-                        id,
                         title,
                         description,
-                        completed
-                    }
-                })
+                        completed,
+                    },
+                });
 
-                return updatedTodo
+                return updatedTodo;
             } catch (error) {
-                console.log('Error To Update Todo', error)
+                console.error('Error updating Todo:', error);
+                throw new Error('Error updating Todo');
             }
         },
 
-        completedTodo: async (_, { id, completed }, { user, prisma }) => {
+        completedTodo: async (
+            _: unknown,
+            { id, completed }: { id: string; completed: boolean },
+            { user, prisma }: Context
+        ): Promise<Todo[]> => {
             const findUser = await prisma.user.findUnique({
-                where: { id: user.id }
-            })
+                where: { id: user.id },
+            });
 
             if (!findUser) {
-                throw new Error('Unauthorized User')
+                throw new Error('Unauthorized User');
             }
 
             const findTodo = await prisma.todo.update({
                 where: { id },
                 data: { completed },
-            })
+            });
+
             if (!findTodo) {
-                return
+                throw new Error('Todo not found');
             }
 
             const sortedTodos = await prisma.todo.findMany({
@@ -134,7 +177,9 @@ export default {
                 },
             });
 
-            return sortedTodos
-        }
+            return sortedTodos;
+        },
     },
 };
+
+export default resolvers;

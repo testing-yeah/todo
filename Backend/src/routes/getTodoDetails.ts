@@ -1,3 +1,4 @@
+import { GET_TODO_BYID } from "../graphQL/getQueryGql/getTodoGql.js";
 
 
 interface GetTodoDetailsParams {
@@ -15,14 +16,15 @@ interface TodoResponse {
 }
 
 export async function getTodoDetails({ id, token }: GetTodoDetailsParams): Promise<TodoResponse> {
-    const response = await fetch('http://localhost:8000/api/gettododetails', {
+    const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            Authorization: token ? `${token}` : '',
         },
         body: JSON.stringify({
-            id,
-            token
+            query: GET_TODO_BYID,
+            variables: { id }
         })
     });
 
@@ -35,5 +37,6 @@ export async function getTodoDetails({ id, token }: GetTodoDetailsParams): Promi
     if (result.errors) {
         throw new Error('Error in GraphQL query');
     }
-    return result;
+
+    return result.data;
 }

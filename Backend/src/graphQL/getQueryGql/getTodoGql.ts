@@ -46,7 +46,7 @@ export const UPDATE_TODO = `
 export const COMPLETE_TODO = ` 
   mutation completeTodo($id:ID!,$completed:Boolean!) {
     completedTodo(id:$id,completed:$completed){
-         id
+      id
       title
       description
       completed

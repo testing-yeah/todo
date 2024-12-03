@@ -1,45 +1,41 @@
-import { TODO_MUTATION } from "../graphQL/getQueryGql/getTodo";
-
-interface createTodo {
-    title: string,
-    description: string,
-    token: string
+interface CreateTodo {
+    title: string;
+    description: string;
+    token: string;
 }
 
-interface TodoData {
-    createTodo: {
-        id: string;
-        title: string;
-        description: string;
-        completed: boolean;
-    };
+export interface CreateTodoResponse {
+    title: string;
+    description: string;
+    completed: boolean;
 }
 
-export async function createTodo({ title, description, token }: createTodo): Promise<TodoData> {
-    const response = await fetch(`http://localhost:8000/graphql`, {
+export async function createTodo({ title, description, token }: CreateTodo): Promise<CreateTodoResponse> {
+    const API_URL = 'http://localhost:8000/api/createtodo';
+
+    const response = await fetch(API_URL, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
             Authorization: token ? `${token}` : '',
         },
         body: JSON.stringify({
-            query: TODO_MUTATION,
-            variables: {
-                title, description
-            },
+            title,
+            description,
+            token,
         }),
     });
 
-
     if (!response.ok) {
-        throw new Error('Error To Sending Request For Create Todo')
+        const errorMessage = `Error creating todo: ${response.status} - ${response.statusText}`;
+        throw new Error(errorMessage);
     }
 
-    const result = await response.json()
-    console.log(result)
+    const result = await response.json();
+
     if (result.errors) {
-        throw new Error('GraphQL errors occurred')
+        throw new Error(`API Error: ${result.errors[0]?.message || 'Unknown error'}`);
     }
 
-    return result.data
+    return result.data as CreateTodoResponse;
 }

@@ -20,3 +20,14 @@ export const LOGIN_USER = `
                   }
                 }
               `;
+
+
+export const SIGN_UP_MUTATION = `
+              mutation createUser($username:String!,$email:String!,$password:String!){
+                createUser(username: $username, email: $email, password: $password){
+                id
+                username
+                email
+                }
+              }
+            `

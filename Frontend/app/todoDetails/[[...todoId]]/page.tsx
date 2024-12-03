@@ -1,8 +1,8 @@
 'use client'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
-import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Button } from '../../../@/components/ui/button'
 import { Input } from '../../../@/components/ui/input'
 import { Textarea } from "../../../@/components/ui/textarea"
@@ -33,6 +33,10 @@ interface TodoResponse {
         completed: boolean
     }
 }
+interface GetTodoDetailsVariables {
+    id: string;
+    token: string;
+}
 
 interface updateTodo {
     id: string,
@@ -47,10 +51,12 @@ function TodoDetails() {
     const token = Cookies.get('sessionId') || ''
     const queryClient = useQueryClient()
 
-    const { mutate, data } = useMutation<TodoResponse, Error, { id: string, token: string }>({
-        mutationKey: ['GetTodoDetails'],
-        mutationFn: getTodoDetails,
-    })
+    const { data, isLoading, error } = useQuery<TodoResponse>(
+        {
+            queryKey: ['GetTodoDetails', { id: param.todoId?.[0], token }],
+            queryFn: () => getTodoDetails({ id: param.todoId?.[0] || '', token }),
+        }
+    );
 
     const [editTodo, setEditTodo] = useState<editTodoForm | null>(null)
     const [inputValue, setInputValue] = useState<FormData>({
@@ -60,19 +66,6 @@ function TodoDetails() {
     })
 
     const router = useRouter()
-
-    useEffect(() => {
-        const currentParam = param.todoId?.[0] || ''
-        async function getTodo() {
-            try {
-                await mutate({ id: currentParam, token })
-            } catch (error) {
-                console.log('Error sending ID to server', error)
-            }
-        }
-
-        getTodo()
-    }, [param, queryClient])
 
     function handleEditTodo(todo: editTodoForm) {
         const editTodo: editTodoForm = {
@@ -112,6 +105,10 @@ function TodoDetails() {
 
             updateTodoReq(todoToUpdate, {
                 onSuccess: (data, variables) => {
+                    queryClient.invalidateQueries({
+                        queryKey: ['GetTodoDetails', { id: data.updateTodo.id, token }],
+                        exact: true,
+                    });
                     setEditTodo(null);
                 }
             });
@@ -145,7 +142,7 @@ function TodoDetails() {
         <div className='max-w-[1500px] mx-auto pt-5 px-5'>
             <h1 className='text-3xl font-semibold tracking-wider'>TodoDetails</h1>
             <div className={`my-5`}>
-                <div className={`w-full border border-slate-600 rounded-sm py-4 px-3 ${data?.getTodoById.completed ? 'border-r-[12px] border-green-700' : ''}`}>
+                <div className={`w-full border  rounded-sm py-4 px-3 ${data && data.getTodoById && data.getTodoById.completed ? 'border-r-[12px] border-green-700' : 'border-r-[12px] border-slate-600'}`}>
                     <p className='text-xl flex items-center'>📍 {" "}
                         {!editTodo?.id && data && data.getTodoById && data.getTodoById.title}
                         {editTodo?.id && <Input className='' value={inputValue.title} name='title' onChange={handleChange} />}

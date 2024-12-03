@@ -8,20 +8,20 @@ import Cookies from 'js-cookie'
 import { X } from 'lucide-react'
 import { createTodo, CreateTodoResponse } from '../todoRequest/createTodo'
 
-// Define types for form data
 interface TodoFormData {
     title: string
     description: string
-    completed: boolean
+    completed: boolean,
 }
 
 interface AddTodoFormProps {
-    // You can add any props here in the future if needed
+
 }
 
 function AddTodoForm({ }: AddTodoFormProps) {
     const queryClient = useQueryClient()
-    const token = Cookies.get('sessionId')
+    const token = Cookies.get('sessionId') || ''
+
     const { mutate } = useMutation<CreateTodoResponse, Error, { title: string, description: string, token: string }>({
         mutationFn: createTodo,
     })

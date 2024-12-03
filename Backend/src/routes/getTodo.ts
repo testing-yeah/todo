@@ -1,17 +1,15 @@
-interface userData {
-    id: string,
-    username: string,
-    email: string
-}
+import { GET_TODO_QUERY } from "../graphQL/getQueryGql/getTodoGql.js";
 
-export async function getUser(token: string): Promise<userData> {
-    const response = await fetch('http://localhost:8000/api/getuser', {
+
+export default async function getTodo({ token }: any) {
+    const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            Authorization: token ? `${token}` : '',
         },
         body: JSON.stringify({
-            token
+            query: GET_TODO_QUERY,
         }),
     });
 
@@ -24,7 +22,7 @@ export async function getUser(token: string): Promise<userData> {
     if (result.errors) {
         throw new Error('GraphQL errors occurred');
     }
-    console.log(result)
-    return result.getUserProfile;
+    console.log('getTodoData',res)
+    return result;
 }
 

@@ -1,17 +1,21 @@
+import { GET_USER } from "../graphQL/getUserGql/getUser.js";
+
+
 interface userData {
     id: string,
     username: string,
     email: string
 }
 
-export async function getUser(token: string): Promise<userData> {
-    const response = await fetch('http://localhost:8000/api/getuser', {
+export async function getUser({ token }: any): Promise<userData> {
+    const response = await fetch('http://localhost:8000/graphql', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            Authorization: token ? `${token}` : '',
         },
         body: JSON.stringify({
-            token
+            query: GET_USER,
         }),
     });
 
@@ -24,7 +28,6 @@ export async function getUser(token: string): Promise<userData> {
     if (result.errors) {
         throw new Error('GraphQL errors occurred');
     }
-    console.log(result)
-    return result.getUserProfile;
+    return result.data;
 }
 

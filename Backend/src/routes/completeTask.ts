@@ -1,3 +1,5 @@
+import { COMPLETE_TODO } from "../graphQL/getQueryGql/getTodoGql.js"
+
 interface todoData {
     id: string,
     completed: boolean
@@ -6,16 +8,18 @@ interface todoData {
 
 export async function completeTodo({ id, completed, token }: todoData) {
     try {
-        const response = await fetch(`http://localhost:8000/api/completetodo`, {
+        const response = await fetch(`http://localhost:8000/graphql`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: token ? `${token}` : ''
             },
             body: JSON.stringify({
-                id,
-                completed,
-                token
+                query: COMPLETE_TODO,
+                variables: {
+                    id,
+                    completed,
+                }
             })
         })
 
