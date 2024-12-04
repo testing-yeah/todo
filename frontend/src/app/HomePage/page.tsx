@@ -1,6 +1,6 @@
 import React from "react";
-import LogoutButton from "../pages/LogoutButton";
-import AddTodo from "../pages/AddTodo";
+import LogoutButton from "../../pages/LogoutButton";
+import AddTodo from "../../pages/AddTodo";
 
 const HomePage = () => {
     return (

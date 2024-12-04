@@ -1,73 +1,50 @@
 "use client";
 
-import { useMutation } from "@apollo/client";
+import { loginUserRequest } from "@/userRequests/loginUserRequest";
+import { useMutation } from "@tanstack/react-query";
+import Cookies from "js-cookie";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import {
-    REGISTER_USER,
-    RegisterUserResponse,
-    RegisterUserVariables,
-} from "../lib/graphql";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const RegisterForm: React.FC = () => {
+const LoginForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
-    const [username, setUsername] = useState<string>("");
-
-    const [registerUser, { loading }] = useMutation<
-        RegisterUserResponse,
-        RegisterUserVariables
-    >(REGISTER_USER);
 
     const router = useRouter();
 
-    const handleRegister = async (e: FormEvent) => {
+    const { mutate: loginUser } = useMutation({
+        mutationFn: loginUserRequest,
+
+        onSuccess: (token: string) => {
+            const isSecure = window.location.protocol === "https:";
+            localStorage.setItem("token", token);
+            Cookies.set("token", token, { expires: 7, secure: isSecure });
+            toast.success("Login successful!");
+            router.replace("/");
+        },
+        onError: (err) => {
+            console.error("Error during login:", err);
+            toast.error("Invalid email or password. Please try again.");
+        },
+    });
+
+    const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
-
-        try {
-            const { data } = await registerUser({
-                variables: { email, password, username },
-            });
-
-            if (data?.register) {
-                router.push("/login");
-                toast.success("Registration successful!");
-            }
-        } catch (err) {
-            console.error("Error during registration:", err);
-            toast.error("Registration failed. Please try again.");
-        }
+        loginUser({ email, password });
     };
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-black">
             <form
-                onSubmit={handleRegister}
+                onSubmit={handleLogin}
                 className="w-full max-w-md p-10 bg-white rounded-lg shadow-2xl space-y-4"
             >
                 <h2 className="text-4xl font-semibold text-center text-gray-700">
-                    Register
+                    Login
                 </h2>
-
-                <div>
-                    <label
-                        htmlFor="username"
-                        className="block text-lg text-black font-medium"
-                    >
-                        Username:
-                    </label>
-                    <input
-                        id="username"
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                </div>
 
                 <div>
                     <label
@@ -105,17 +82,16 @@ const RegisterForm: React.FC = () => {
 
                 <button
                     type="submit"
-                    disabled={loading}
                     className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                    {loading ? "Registering..." : "Register"}
+                    Login
                 </button>
 
                 <div>
                     <p className="text-base text-black">
-                        Already have an account?{" "}
-                        <Link href="/login" className="text-blue-700 underline">
-                            Login
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register" className="text-blue-700 underline">
+                            Register
                         </Link>
                     </p>
                 </div>
@@ -126,4 +102,4 @@ const RegisterForm: React.FC = () => {
     );
 };
 
-export default RegisterForm;
+export default LoginForm;

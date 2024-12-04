@@ -1,37 +1,43 @@
 "use client";
 
-import {
-    EDIT_TODO,
-    EditTodoResponse,
-    EditTodoVariables,
-    GET_TODO_BY_ID,
-    GetTodoByIdResponse,
-    GetTodoByIdVariables,
-} from "@/app/lib/graphql";
-import { useQuery, useMutation } from "@apollo/client";
+import { getTodoById } from "@/todoRequests/getTodoById";
+import { updateTodo } from "@/todoRequests/updateTodo";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState, ChangeEvent } from "react";
+import { toast, ToastContainer } from "react-toastify";
 
 const TodoDetail: React.FC = () => {
     const router = useRouter();
     const param = useParams();
-    const todoData = Number(param.todoId);
+    const todoData = param ? Number(param.todoId) : null;
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || "";
 
-    // Query to fetch the todo data
-    const { loading, error, data } = useQuery<
-        GetTodoByIdResponse,
-        GetTodoByIdVariables
-    >(GET_TODO_BY_ID, {
-        variables: { id: todoData },
+    const queryClient = useQueryClient();
+
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["getTodoByIds"],
+        queryFn: () => {
+            if (todoData === null) {
+                throw new Error("Invalid Todo ID");
+            }
+            return getTodoById({ id: todoData, token });
+        },
     });
 
     // Mutation to update todo
-    const [editTodo, { loading: updating, error: updateError }] = useMutation<
-        EditTodoResponse,
-        EditTodoVariables
-    >(EDIT_TODO);
+    const { mutate: updateTodos } = useMutation({
+        mutationFn: updateTodo,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["getTodoByIds"] });
+            toast.success("Todo updated successfully!");
+        },
+        onError: (error) => {
+            console.log("Error updating todo:", error);
+            toast.error(`Error updating todo: ${error?.message || "Unknown error"}`);
+        },
+    });
 
     // Modal and form states
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -49,19 +55,17 @@ const TodoDetail: React.FC = () => {
 
     // Handle form submission for updating todo
     const handleUpdate = async (): Promise<void> => {
-        if (!title || !description || !token) {
+        if (!title || !description || !token || !todoData) {
             console.error("Title and Description are required.");
             return;
         }
 
         try {
-            await editTodo({
-                variables: {
-                    id: todoData,
-                    title,
-                    description,
-                    token,
-                },
+            updateTodos({
+                id: todoData,
+                title,
+                description,
+                token,
             });
             setIsEditing(false);
         } catch (err) {
@@ -69,7 +73,7 @@ const TodoDetail: React.FC = () => {
         }
     };
 
-    if (loading)
+    if (isLoading)
         return <p className="text-center text-lg text-gray-600">Loading...</p>;
     if (error)
         return (
@@ -84,6 +88,8 @@ const TodoDetail: React.FC = () => {
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-500">
+            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
+
             <div className="w-full mx-20 p-6 bg-white shadow-2xl rounded-lg">
                 <button
                     onClick={() => router.back()}
@@ -158,9 +164,8 @@ const TodoDetail: React.FC = () => {
                             <button
                                 onClick={handleUpdate}
                                 className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-                                disabled={updating}
                             >
-                                {updating ? "Updating..." : "Save"}
+                                Save
                             </button>
                             <button
                                 onClick={() => setIsEditing(false)}
@@ -169,10 +174,6 @@ const TodoDetail: React.FC = () => {
                                 Cancel
                             </button>
                         </div>
-
-                        {updateError && (
-                            <p className="text-red-500 mt-4">{updateError.message}</p>
-                        )}
                     </div>
                 </div>
             )}

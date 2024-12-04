@@ -1,58 +1,75 @@
-"use client";
+'use client'
 
-import { useMutation } from "@apollo/client";
-import Cookies from "js-cookie";
+import { RegisterUserResponse, RegisterUserVariables } from "@/lib/graphql";
+import { registerUserReq } from "@/userRequests/registerUserReq";
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import {
-    LOGIN_USER,
-    LoginUserResponse,
-    LoginUserVariables,
-} from "../lib/graphql";
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const LoginForm: React.FC = () => {
+const RegisterForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
 
-    const [loginUser, { loading }] = useMutation<
-        LoginUserResponse,
-        LoginUserVariables
-    >(LOGIN_USER);
+    const { mutate: registerUser, status } = useMutation<
+        RegisterUserResponse,
+        Error,
+        RegisterUserVariables
+    >({
+        mutationFn: registerUserReq,
+        onSuccess: () => {
+            router.push("/login");
+            toast.success("Registration successful!");
+        },
+        onError: (err) => {
+            console.error("Error during registration:", err);
+            toast.error("Registration failed. Please try again.");
+        },
+    });
 
     const router = useRouter();
 
-    const handleLogin = async (e: FormEvent) => {
+    const handleRegister = async (e: FormEvent): Promise<void> => {
         e.preventDefault();
 
         try {
-            const { data } = await loginUser({
-                variables: { email, password },
-            });
-
-            if (data?.login) {
-                localStorage.setItem("token", data?.login);
-                Cookies.set("token", data?.login, { expires: 7, secure: true });
-                toast.success("Login successful!");
-                router.replace("/");
-            }
+            registerUser({ email, password, username });
         } catch (err) {
-            console.error("Error during login:", err);
-            toast.error("Invalid email or password. Please try again.");
+            console.error("Error during registration:", err);
+            toast.error("Registration failed. Please try again.");
         }
     };
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-black">
             <form
-                onSubmit={handleLogin}
+                onSubmit={handleRegister}
                 className="w-full max-w-md p-10 bg-white rounded-lg shadow-2xl space-y-4"
             >
                 <h2 className="text-4xl font-semibold text-center text-gray-700">
-                    Login
+                    Register
                 </h2>
+
+                <div>
+                    <label
+                        htmlFor="username"
+                        className="block text-lg text-black font-medium"
+                    >
+                        Username:
+                    </label>
+                    <input
+                        id="username"
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                </div>
 
                 <div>
                     <label
@@ -90,17 +107,17 @@ const LoginForm: React.FC = () => {
 
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={status === "pending"}
                     className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                    {loading ? "Logging in..." : "Login"}
+                    {status === "pending" ? "Registering..." : "Register"}
                 </button>
 
                 <div>
                     <p className="text-base text-black">
-                        Don&apos;t have an account?{" "}
-                        <Link href="/register" className="text-blue-700 underline">
-                            Register
+                        Already have an account?{" "}
+                        <Link href="/login" className="text-blue-700 underline">
+                            Login
                         </Link>
                     </p>
                 </div>
@@ -111,4 +128,4 @@ const LoginForm: React.FC = () => {
     );
 };
 
-export default LoginForm;
+export default RegisterForm;

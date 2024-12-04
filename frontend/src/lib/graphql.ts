@@ -1,7 +1,5 @@
-import { gql } from "@apollo/client";
-
 // Register mutation
-export const REGISTER_USER = gql`
+export const REGISTER_USER = `
   mutation RegisterUser(
     $email: String!
     $password: String!
@@ -11,6 +9,7 @@ export const REGISTER_USER = gql`
       id
       email
       username
+      password
     }
   }
 `;
@@ -20,6 +19,7 @@ export interface RegisterUserResponse {
     id: string;
     email: string;
     username: string;
+    password: string;
   };
 }
 
@@ -30,7 +30,7 @@ export interface RegisterUserVariables {
 }
 
 // Login mutation
-export const LOGIN_USER = gql`
+export const LOGIN_USER = `
   mutation LoginUser($email: String!, $password: String!) {
     login(email: $email, password: $password)
   }
@@ -45,18 +45,8 @@ export interface LoginUserVariables {
   password: string;
 }
 
-export const LOGOUT_USER = gql`
-  mutation LogoutUser {
-    logout
-  }
-`;
-
-export interface LogoutUserResponse {
-  logout: boolean;
-}
-
 // Add Todo mutation
-export const addTodoMut = gql`
+export const addTodoMut = `
   mutation addTodo(
     $title: String!
     $description: String!
@@ -90,7 +80,6 @@ export interface AddTodoResponse {
 }
 
 export interface AddTodoVariables {
-  userId: number;
   title: string;
   description: string;
   completed?: boolean;
@@ -98,7 +87,7 @@ export interface AddTodoVariables {
 }
 
 // all Todo data
-export const GET_USER_TODOS = gql`
+export const GET_USER_TODOS = `
   query GetUserTodos($userId: String!) {
     getUserTodos(userId: $userId) {
       id
@@ -121,11 +110,11 @@ export interface GetUserTodosResponse {
 }
 
 export interface GetUserTodosVariables {
-  userId: number;
+  userId: string;
 }
 
 // Delete Todo mutation
-export const DELETE_TODO = gql`
+export const DELETE_TODO = `
   mutation DeleteTodo($id: Int!, $token: String!) {
     deleteTodo(id: $id, token: $token)
   }
@@ -141,7 +130,7 @@ export interface DeleteTodoVariables {
 }
 
 // Edit Todo mutation
-export const EDIT_TODO = gql`
+export const EDIT_TODO = `
   mutation EditTodo(
     $id: Int!
     $token: String!
@@ -181,10 +170,11 @@ export interface EditTodoVariables {
   title?: string;
   description?: string;
   completed?: boolean;
+  createdAt?: string;
 }
 
 // Get Todo by ID query
-export const GET_TODO_BY_ID = gql`
+export const GET_TODO_BY_ID = `
   query GetTodoById($id: Int!) {
     getTodoById(id: $id) {
       id

@@ -40,7 +40,6 @@ const typeDefs = gql`
 
     register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): String!
-    logout: Boolean!
 
     deleteTodo(id: Int!, token: String!): Boolean!
 

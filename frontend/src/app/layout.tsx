@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import ProtectedRouter from "./components/ProtectedRouter";
-import ApolloProviderCompo from "./context/providers";
+import ProtectedRouter from "../components/ProtectedRouter";
+import ApolloProviderCompo from "../context/providers";
 import "./globals.css";
 
 const geistSans = localFont({

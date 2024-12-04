@@ -1,5 +1,6 @@
 "use client";
 
+import React, { ReactNode, useEffect, useState } from "react";
 import {
     ApolloClient,
     ApolloProvider,
@@ -12,10 +13,11 @@ import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient } from "graphql-ws";
-import React, { ReactNode } from "react";
 
-// Define the type for props
+const queryClient = new QueryClient();
+
 interface ApolloProviderCompoProps {
     children: ReactNode;
 }
@@ -23,6 +25,15 @@ interface ApolloProviderCompoProps {
 const ApolloProviderCompo: React.FC<ApolloProviderCompoProps> = ({
     children,
 }) => {
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedToken = localStorage.getItem("token");
+            setToken(storedToken);
+        }
+    }, []);
+
     const errorLink = onError(({ graphQLErrors, networkError }) => {
         if (graphQLErrors) {
             graphQLErrors.forEach(({ message, locations, path }) =>
@@ -36,16 +47,12 @@ const ApolloProviderCompo: React.FC<ApolloProviderCompoProps> = ({
         }
     });
 
-    const authLink = setContext((_, { headers }) => {
-        const token = localStorage.getItem("token");
-
-        return {
-            headers: {
-                ...headers,
-                Authorization: token ? `${token}` : undefined,
-            },
-        };
-    });
+    const authLink = setContext((_, { headers }) => ({
+        headers: {
+            ...headers,
+            Authorization: token ? `${token}` : undefined,
+        },
+    }));
 
     const httpLink = createHttpLink({
         uri: "http://localhost:8000/graphql",
@@ -69,12 +76,17 @@ const ApolloProviderCompo: React.FC<ApolloProviderCompoProps> = ({
         httpLink
     );
 
+    // Create the Apollo Client instance
     const client = new ApolloClient({
         link: from([errorLink, authLink.concat(splitLink)]),
         cache: new InMemoryCache(),
     });
 
-    return <ApolloProvider client={client}>{children}</ApolloProvider>;
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ApolloProvider client={client}>{children}</ApolloProvider>
+        </QueryClientProvider>
+    );
 };
 
 export default ApolloProviderCompo;

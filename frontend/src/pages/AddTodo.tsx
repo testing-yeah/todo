@@ -1,122 +1,134 @@
 "use client";
 
-import { useMutation, useQuery } from "@apollo/client";
 import React, { FormEvent, useEffect, useState } from "react";
-import {
-    AddTodoResponse,
-    AddTodoVariables,
-    DELETE_TODO,
-    DeleteTodoResponse,
-    DeleteTodoVariables,
-    EDIT_TODO,
-    GET_USER_TODOS,
-    GetUserTodosResponse,
-    GetUserTodosVariables,
-    addTodoMut,
-} from "../lib/graphql";
 import TodoList from "./TodoList";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTodo } from "@/todoRequests/getTodo";
+import { createTodo } from "@/todoRequests/createTodo";
+import { deleteTodo } from "@/todoRequests/deleteTodo";
+import { completeTodo } from "@/todoRequests/completeTask";
+
+interface Todo {
+    id: number;
+    title: string;
+    description: string;
+    completed: boolean;
+    createdAt: string;
+}
 
 const AddTodo: React.FC = () => {
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
-    const [completed, setCompleted] = useState<boolean>(false);
+    const [completed] = useState<boolean>(false);
+    const [sessionid, setSessionid] = useState<string | null>(null);
+    const [userTodos, setUserTodos] = useState<Todo[]>([]);
 
-    const sessionid = localStorage.getItem("token");
+    const queryClient = useQueryClient();
 
-    const [userTodos, setUserTodos] = useState<
-        GetUserTodosResponse["getUserTodos"]
-    >([]);
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("token");
+            setSessionid(token);
+        }
+    }, []);
 
     const {
         data,
-        loading: queryLoading,
+        isLoading: queryLoading,
         error,
-    } = useQuery<GetUserTodosResponse, GetUserTodosVariables>(GET_USER_TODOS, {
-        variables: { userId: sessionid },
+    } = useQuery({
+        queryKey: ["getUserTodos"],
+        queryFn: () => getTodo({ token: sessionid as string }),
+        enabled: !!sessionid,
     });
 
-    // Set the userTodos when data is fetched
     useEffect(() => {
-        if (data && data?.getUserTodos) {
-            setUserTodos(data.getUserTodos);
+        if (data) {
+            setUserTodos(data as Todo[]);
         }
     }, [data]);
 
-    // Mutation for adding a todo
-    const [addTodo, { loading }] = useMutation<AddTodoResponse, AddTodoVariables>(
-        addTodoMut
-    );
+    const { mutate: addTodos } = useMutation({
+        mutationFn: createTodo,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["getUserTodos"] });
+            toast.success("Todo added successfully!");
+            setTitle("");
+            setDescription("");
+        },
+        onError: (error) => {
+            toast.error(`Error adding todo: ${error?.message || "Unknown error"}`);
+        },
+    });
 
-    // Mutation for deleting a todo
-    const [deleteTodo] = useMutation<DeleteTodoResponse, DeleteTodoVariables>(
-        DELETE_TODO
-    );
+    const { mutate: deleteTodos } = useMutation({
+        mutationFn: deleteTodo,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["getUserTodos"] });
+            toast.success("Todo deleted successfully!");
+        },
+        onError: (error) => {
+            toast.error(`Error deleting todo: ${error?.message || "Unknown error"}`);
+        },
+    });
 
-    // Mutation for editing a todo
-    const [editTodo] = useMutation(EDIT_TODO);
+    const { mutate: editTodo } = useMutation({
+        mutationFn: completeTodo,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["getUserTodos"] });
+            toast.success("Todo updated successfully!");
+        },
+        onError: (error) => {
+            toast.error(`Error updating todo: ${error?.message || "Unknown error"}`);
+        },
+    });
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        try {
-            // Adding a new todo
-            const { data } = await addTodo({
-                variables: { title, description, token: sessionid, completed },
-            });
+        if (!sessionid) {
+            toast.error("No session token found.");
+            return;
+        }
 
-            if (data?.addTodo) {
-                toast.success("Todo added successfully!");
-                setUserTodos((prevTodos) => [...prevTodos, data.addTodo]);
-                setTitle("");
-                setDescription("");
-                setCompleted(false);
-            }
+        try {
+            addTodos({
+                title,
+                description,
+                token: sessionid,
+                completed,
+            });
         } catch (error) {
-            console.log("Error handling todo:", error);
+            console.log("Error adding todo:", error);
+            toast.error("Error handling todo.");
         }
     };
 
-    const handleDelete = async (id: number) => {
-        try {
-            // Call delete mutation
-            const { data } = await deleteTodo({
-                variables: { id, token: sessionid },
+    const handleDelete = (id: number) => {
+        if (sessionid) {
+            deleteTodos({
+                id,
+                token: sessionid,
             });
-
-            if (data?.deleteTodo) {
-                // Remove deleted todo from the userTodos state
-                setUserTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
-                toast.success("Todo deleted successfully!");
-            }
-        } catch (error) {
-            console.log("Error deleting todo:", error);
         }
     };
 
     const handleToggleCompleted = async (id: number, completed: boolean) => {
         try {
             const todoToUpdate = userTodos.find((todo) => todo.id === id);
-
             if (todoToUpdate) {
-                const { data } = await editTodo({
-                    variables: {
-                        id,
-                        token: sessionid,
-                        title: todoToUpdate.title,
-                        description: todoToUpdate.description,
-                        completed,
-                    },
+                editTodo({
+                    id,
+                    token: sessionid as string,
+                    completed: !completed,
                 });
-
-                if (data?.editTodo) {
-                    setUserTodos((prevTodos) =>
-                        prevTodos.map((todo) =>
-                            todo.id === id ? { ...todo, completed } : todo
-                        )
-                    );
-                }
+                setUserTodos((prevTodos) =>
+                    prevTodos.map((todo) =>
+                        todo.id === id ? { ...todo, completed: !completed } : todo
+                    )
+                );
             }
         } catch (error) {
             console.log("Error toggling completion:", error);
@@ -170,10 +182,9 @@ const AddTodo: React.FC = () => {
                         <div>
                             <button
                                 type="submit"
-                                disabled={loading}
                                 className="group relative w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                             >
-                                {loading ? "Saving..." : "Add Todo"}
+                                Add Todo
                             </button>
                         </div>
                     </form>
@@ -181,7 +192,7 @@ const AddTodo: React.FC = () => {
             </div>
 
             {queryLoading ? (
-                <div className="text-center">Loading todos...</div>
+                <div className="text-center"> Loading todos...</div>
             ) : error ? (
                 <div className="text-center text-red-500">Error loading todos</div>
             ) : (

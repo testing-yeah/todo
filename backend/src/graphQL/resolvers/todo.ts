@@ -1,38 +1,45 @@
 import jwt from "jsonwebtoken";
-import prisma from "../../../prisma/client.js";
+import prisma from "../../../prisma/client";
+
+interface UserJwt {
+    userId: string;
+}
 
 const todoResolvers = {
     Query: {
-        getTodo: async () => {
+        getTodo: async (): Promise<any[]> => {
             try {
                 const todos = await prisma.todo.findMany();
                 return todos;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error fetching todos: " + error.message);
             }
         },
 
-        getUserTodos: async (_, { userId: userToken }) => {
-            const userJwt = jwt.verify(userToken, process.env.JWT_SECRET);
+        getUserTodos: async (
+            _: any,
+            { userId }: { userId: string }
+        ): Promise<any[]> => {
+            const userJwt = jwt.verify(userId, process.env.JWT_SECRET!) as UserJwt;
 
             try {
                 const todos = await prisma.todo.findMany({
                     where: {
-                        userId: userJwt.userId,
+                        userId: Number(userJwt.userId),
                     },
                 });
 
                 return todos;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error fetching todos for user: " + error.message);
             }
         },
 
-        getTodoById: async (_, { id }) => {
+        getTodoById: async (_: any, { id }: { id: string }): Promise<any> => {
             try {
-                // Find the todo by its ID
+                // Ensure id is parsed as an integer
                 const todo = await prisma.todo.findUnique({
-                    where: { id },
+                    where: { id: parseInt(id, 10) },
                 });
 
                 if (!todo) {
@@ -40,21 +47,33 @@ const todoResolvers = {
                 }
 
                 return todo;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error fetching todo by ID: " + error.message);
             }
         },
     },
 
     Mutation: {
-        // Add a new Todo
-        addTodo: async (_, { title, description, token, completed }) => {
-            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
+        addTodo: async (
+            _: any,
+            {
+                title,
+                description,
+                token,
+                completed,
+            }: {
+                title: string;
+                description: string;
+                token: string;
+                completed?: boolean;
+            }
+        ): Promise<any> => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET!) as UserJwt;
 
             try {
                 // Check if the user exists
                 const user = await prisma.user.findUnique({
-                    where: { id: userJwt.userId },
+                    where: { id: Number(userJwt.userId) },
                 });
 
                 if (!user) {
@@ -72,59 +91,69 @@ const todoResolvers = {
                 });
 
                 return newTodo;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error adding Todo: " + error.message);
             }
         },
 
-        // Delete a Todo by ID
-        deleteTodo: async (_, { id, token }) => {
-            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
+        deleteTodo: async (
+            _: any,
+            { id, token }: { id: string; token: string }
+        ): Promise<boolean> => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET!) as UserJwt;
 
             try {
+                // Ensure id is parsed as an integer
                 const todo = await prisma.todo.findUnique({
-                    where: { id },
+                    where: { id: parseInt(id, 10) },
                 });
 
                 if (!todo) {
                     throw new Error("Todo not found");
-                }
-
-                if (todo.userId !== userJwt.userId) {
-                    throw new Error("You are not authorized to delete this todo");
                 }
 
                 // Delete the todo
                 await prisma.todo.delete({
-                    where: { id },
+                    where: { id: parseInt(id, 10) },
                 });
 
                 return true;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error deleting Todo: " + error.message);
             }
         },
 
-        // Edit an existing Todo
-        editTodo: async (_, { id, token, title, description, completed }) => {
-            const userJwt = jwt.verify(token, process.env.JWT_SECRET);
+        editTodo: async (
+            _: any,
+            {
+                id,
+                token,
+                title,
+                description,
+                completed,
+            }: {
+                id: string;
+                token: string;
+                title?: string;
+                description?: string;
+                completed?: boolean;
+            }
+        ): Promise<any> => {
+            const userJwt = jwt.verify(token, process.env.JWT_SECRET!) as UserJwt;
 
             try {
+                // Ensure id is parsed as an integer
                 const todo = await prisma.todo.findUnique({
-                    where: { id },
+                    where: { id: parseInt(id, 10) },
                 });
 
                 if (!todo) {
                     throw new Error("Todo not found");
                 }
 
-                if (todo.userId !== userJwt.userId) {
-                    throw new Error("You are not authorized to edit this todo");
-                }
-
                 // Update the Todo with provided fields
                 const updatedTodo = await prisma.todo.update({
-                    where: { id },
+                    where: { id: parseInt(id, 10) },
                     data: {
                         title: title ?? todo.title,
                         description: description ?? todo.description,
@@ -133,7 +162,7 @@ const todoResolvers = {
                 });
 
                 return updatedTodo;
-            } catch (error) {
+            } catch (error: any) {
                 throw new Error("Error editing Todo: " + error.message);
             }
         },

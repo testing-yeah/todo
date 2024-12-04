@@ -1,5 +1,6 @@
-import { useRouter } from "next/navigation";
 import moment from "moment";
+import { useRouter } from "next/navigation";
+import { MdOutlineDeleteForever } from "react-icons/md";
 
 const TodoList = ({
   userTodos,
@@ -41,22 +42,22 @@ const TodoList = ({
           </tr>
         </thead>
         <tbody>
-          {userTodos.length === 0 ? (
+          {userTodos?.length === 0 ? (
             <tr>
               <td colSpan={6} className="px-4 py-2 text-center text-gray-500">
                 No data found
               </td>
             </tr>
           ) : (
-            userTodos.map((todo, index) => (
+            userTodos?.map((todo, index) => (
               <tr key={todo.id} className="border-b">
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{todo.title}</td>
                 <td className="px-4 py-2">
                   <span
                     className={`inline-block px-3 py-1 rounded-full ${todo.completed
-                        ? "bg-green-500 text-white"
-                        : "bg-red-500 text-white"
+                      ? "bg-green-500 text-white"
+                      : "bg-red-500 text-white"
                       }`}
                   >
                     {todo.completed ? "Completed" : "Pending"}
@@ -67,10 +68,10 @@ const TodoList = ({
                 </td>
                 <td className="px-4 py-2">
                   <button
-                    className="px-4 py-2 bg-red-500 text-white rounded"
+                    className="px-4 py-2 hover:text-red-600 rounded text-black"
                     onClick={() => onDelete(todo.id)}
                   >
-                    Delete
+                    <MdOutlineDeleteForever size={28} />
                   </button>
                 </td>
                 <td className="px-4 py-2">
