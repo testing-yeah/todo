@@ -2,13 +2,22 @@
 
 import { RegisterUserResponse, RegisterUserVariables } from "@/lib/graphql";
 import { registerUserReq } from "@/userRequests/registerUserReq";
-import { useMutation } from "@tanstack/react-query";
+import { dehydrate, QueryClient, useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+export async function getServerSideProps() {
+    const queryClient = new QueryClient();
+
+    return {
+        props: {
+            dehydratedState: dehydrate(queryClient),
+        },
+    };
+}
 
 const RegisterForm: React.FC = () => {
     const [email, setEmail] = useState<string>("");

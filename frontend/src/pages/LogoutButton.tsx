@@ -20,12 +20,14 @@ const LogoutButton: React.FC = () => {
     };
 
     return (
-        <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-200 ease-in-out hover:scale-105 disabled:opacity-50"
-        >
-            Logout
-        </button>
+        <>
+            <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-200 ease-in-out hover:scale-105 disabled:opacity-50"
+            >
+                Logout
+            </button>
+        </>
     );
 };
 

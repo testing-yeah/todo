@@ -4,11 +4,13 @@ import React, { FormEvent, useEffect, useState } from "react";
 import TodoList from "./TodoList";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { dehydrate, QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { getTodo } from "@/todoRequests/getTodo";
 import { createTodo } from "@/todoRequests/createTodo";
 import { deleteTodo } from "@/todoRequests/deleteTodo";
 import { completeTodo } from "@/todoRequests/completeTask";
+import Cookies from "js-cookie";
+import { queryClient } from "@/components/tanStackProvider";
 
 interface Todo {
     id: number;
@@ -18,21 +20,23 @@ interface Todo {
     createdAt: string;
 }
 
+export async function getServerSideProps() {
+    const queryClient = new QueryClient();
+
+    return {
+        props: {
+            dehydratedState: dehydrate(queryClient),
+        },
+    };
+}
+
 const AddTodo: React.FC = () => {
     const [title, setTitle] = useState<string>("");
     const [description, setDescription] = useState<string>("");
     const [completed] = useState<boolean>(false);
-    const [sessionid, setSessionid] = useState<string | null>(null);
     const [userTodos, setUserTodos] = useState<Todo[]>([]);
 
-    const queryClient = useQueryClient();
-
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const token = localStorage.getItem("token");
-            setSessionid(token);
-        }
-    }, []);
+    const sessionid = Cookies.get("token");
 
     const {
         data,
@@ -97,7 +101,7 @@ const AddTodo: React.FC = () => {
             addTodos({
                 title,
                 description,
-                token: sessionid,
+                token: sessionid as string,
                 completed,
             });
         } catch (error) {
@@ -110,7 +114,7 @@ const AddTodo: React.FC = () => {
         if (sessionid) {
             deleteTodos({
                 id,
-                token: sessionid,
+                token: sessionid as string,
             });
         }
     };
@@ -122,11 +126,11 @@ const AddTodo: React.FC = () => {
                 editTodo({
                     id,
                     token: sessionid as string,
-                    completed: !completed,
+                    completed,
                 });
                 setUserTodos((prevTodos) =>
                     prevTodos.map((todo) =>
-                        todo.id === id ? { ...todo, completed: !completed } : todo
+                        todo.id === id ? { ...todo, completed } : todo
                     )
                 );
             }

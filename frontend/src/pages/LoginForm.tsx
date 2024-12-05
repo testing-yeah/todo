@@ -1,45 +1,52 @@
 "use client";
 
-import { loginUserRequest } from "@/userRequests/loginUserRequest";
+import { QueryClient, dehydrate } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
+import { loginUserRequest } from "@/userRequests/loginUserRequest";
 import Cookies from "js-cookie";
-import Link from "next/link";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import Link from "next/link";
 
-const LoginForm: React.FC = () => {
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
+export async function getServerSideProps() {
+    const queryClient = new QueryClient();
 
+    return {
+        props: {
+            dehydratedState: dehydrate(queryClient),
+        },
+    };
+}
+
+const LoginPage = () => {
     const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
 
     const { mutate: loginUser } = useMutation({
         mutationFn: loginUserRequest,
-
         onSuccess: (token: string) => {
             const isSecure = window.location.protocol === "https:";
-            localStorage.setItem("token", token);
             Cookies.set("token", token, { expires: 7, secure: isSecure });
             toast.success("Login successful!");
-            router.replace("/");
+            router.push("/");
         },
-        onError: (err) => {
-            console.error("Error during login:", err);
-            toast.error("Invalid email or password. Please try again.");
+        onError: (error: Error) => {
+            toast.error("Login failed! Please check your credentials.");
+            console.error("Error during login:", error);
         },
     });
 
-    const handleLogin = async (e: FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         loginUser({ email, password });
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-black">
+        <div className="flex justify-center items-center min-h-screen bg-gray-100">
             <form
-                onSubmit={handleLogin}
+                onSubmit={handleSubmit}
                 className="w-full max-w-md p-10 bg-white rounded-lg shadow-2xl space-y-4"
             >
                 <h2 className="text-4xl font-semibold text-center text-gray-700">
@@ -96,10 +103,8 @@ const LoginForm: React.FC = () => {
                     </p>
                 </div>
             </form>
-
-            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
         </div>
     );
 };
 
-export default LoginForm;
+export default LoginPage;

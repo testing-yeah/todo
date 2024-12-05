@@ -2,19 +2,19 @@
 
 import { getTodoById } from "@/todoRequests/getTodoById";
 import { updateTodo } from "@/todoRequests/updateTodo";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { useState, ChangeEvent } from "react";
 import { toast, ToastContainer } from "react-toastify";
+import Cookies from "js-cookie";
+import { queryClient } from "@/components/tanStackProvider";
 
 const TodoDetail: React.FC = () => {
     const router = useRouter();
     const param = useParams();
     const todoData = param ? Number(param.todoId) : null;
 
-    const token = localStorage.getItem("token") || "";
-
-    const queryClient = useQueryClient();
+    const token = Cookies.get("token") || "";
 
     const { data, isLoading, error } = useQuery({
         queryKey: ["getTodoByIds"],
