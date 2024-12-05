@@ -11,6 +11,7 @@ import { deleteTodo } from "@/todoRequests/deleteTodo";
 import { completeTodo } from "@/todoRequests/completeTask";
 import Cookies from "js-cookie";
 import { queryClient } from "@/components/tanStackProvider";
+import Header from "./Header";
 
 interface Todo {
     id: number;
@@ -141,6 +142,7 @@ const AddTodo: React.FC = () => {
 
     return (
         <>
+            <Header />
             <ToastContainer position="top-right" autoClose={2000} newestOnTop />
             <div className="flex justify-center items-center px-4 sm:px-6 lg:px-8 my-10">
                 <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-lg">

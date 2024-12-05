@@ -7,7 +7,9 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { todoResolvers } from "./graphQL/resolvers/todo";
 import { userResolvers } from "./graphQL/resolvers/user";
 import { typeDefs } from "./graphQL/type";
-import prisma from "../prisma/client";
+import { PrismaClient } from "@prisma/client";
+
+const prisma: PrismaClient = new PrismaClient();
 
 dotenv.config();
 
@@ -16,7 +18,6 @@ const port = process.env.PORT || 8080;
 
 app.use(cookieParser());
 
-// Define a custom JWT payload type with the userId property
 interface MyJwtPayload extends JwtPayload {
     userId: string;
 }
@@ -32,29 +33,30 @@ const resolvers = {
     },
 };
 
-// Helper function to verify the JWT token and extract the userId
 const verifyToken = (authorizationHeader: string): MyJwtPayload | null => {
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-        throw new Error("Authorization token is missing or malformed.");
+        return null;
     }
 
     const token = authorizationHeader.replace("Bearer ", "");
 
     try {
-        return jwt.verify(token, process.env.JWT_SECRET as string) as MyJwtPayload;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string);
+        // Ensure the decodedToken is of the correct type
+        return decodedToken as MyJwtPayload;
     } catch (err: unknown) {
         if (err instanceof Error) {
             if (err.name === "TokenExpiredError") {
-                throw new Error("Token has expired");
+                console.error("Token has expired");
             } else {
-                throw new Error("Invalid or expired token");
+                console.error("Invalid or expired token");
             }
         } else {
-            throw new Error("Unknown error occurred during token verification");
+            console.error("Unknown error occurred during token verification");
         }
+        return null;
     }
 };
-
 
 // Apollo Server Setup
 const server = new ApolloServer({
@@ -66,14 +68,9 @@ const server = new ApolloServer({
         let user = null;
 
         if (sessionToken) {
-            try {
-                const decodedToken = verifyToken(sessionToken);
-
-                if (decodedToken) {
-                    user = { id: decodedToken.userId };
-                }
-            } catch (err) {
-                console.error("Token validation failed:", err);
+            const decodedToken = verifyToken(sessionToken);
+            if (decodedToken) {
+                user = { id: decodedToken.userId };
             }
         }
 
@@ -85,7 +82,6 @@ const server = new ApolloServer({
 });
 
 const serverStart = async () => {
-    // CORS configuration
     const corsOptions = {
         origin: "http://localhost:3000",
         credentials: true,
@@ -95,7 +91,6 @@ const serverStart = async () => {
 
     await server.start();
 
-    // Type assertion workaround (use if type mismatch persists)
     server.applyMiddleware({ app } as any);
 
     // Start the Express server

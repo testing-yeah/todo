@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import prisma from "../../../prisma/client";
+import { PrismaClient } from "@prisma/client";
+
+const prisma: PrismaClient = new PrismaClient();
 
 interface RegisterArgs {
     email: string;
@@ -13,9 +15,6 @@ interface LoginArgs {
     password: string;
 }
 
-interface DecodedToken {
-    userId: string;
-}
 
 const userResolvers = {
     Query: {},

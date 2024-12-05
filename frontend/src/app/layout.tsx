@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ProtectedRouter from "@/components/ProtectedRouter";
 import QueryClientProviderWrapper from "@/components/tanStackProvider";
-import Header from "@/pages/Header";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,10 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryClientProviderWrapper>
-          <ProtectedRouter>
-            <Header />
-            {children}
-          </ProtectedRouter>
+          <ProtectedRouter>{children}</ProtectedRouter>
         </QueryClientProviderWrapper>
       </body>
     </html>

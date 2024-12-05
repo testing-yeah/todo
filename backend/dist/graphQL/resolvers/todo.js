@@ -1,79 +1,56 @@
-import jwt from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
-
-const prisma: PrismaClient = new PrismaClient();
-
-interface UserJwt {
-    userId: string;
-}
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.todoResolvers = void 0;
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const todoResolvers = {
     Query: {
-        getTodo: async (): Promise<any[]> => {
+        getTodo: async () => {
             try {
                 return await prisma.todo.findMany();
-            } catch (error: any) {
+            }
+            catch (error) {
                 throw new Error("Error fetching todos: " + error.message);
             }
         },
-
-        getUserTodos: async (
-            _: any,
-            { userId }: { userId: string }
-        ): Promise<any[]> => {
-            const userJwt = jwt.verify(userId, process.env.JWT_SECRET!) as UserJwt;
-
+        getUserTodos: async (_, { userId }) => {
+            const userJwt = jsonwebtoken_1.default.verify(userId, process.env.JWT_SECRET);
             return prisma.todo.findMany({
                 where: {
                     userId: Number(userJwt.userId),
                 },
             });
         },
-
-        getTodoById: async (_: any, { id }: { id: string }): Promise<any> => {
+        getTodoById: async (_, { id }) => {
             try {
                 const todo = await prisma.todo.findUnique({
                     where: { id: parseInt(id, 10) },
                 });
-
                 if (!todo) {
                     throw new Error("Todo not found");
                 }
-
                 return todo;
-            } catch (error: any) {
+            }
+            catch (error) {
                 throw new Error("Error fetching todo by ID: " + error.message);
             }
         },
     },
-
     Mutation: {
-        addTodo: async (
-            _: any,
-            {
-                title,
-                description,
-                token,
-                completed,
-            }: {
-                title: string;
-                description: string;
-                token: string;
-                completed?: boolean;
-            }
-        ): Promise<any> => {
-            const userJwt = jwt.verify(token, process.env.JWT_SECRET!) as UserJwt;
-
+        addTodo: async (_, { title, description, token, completed, }) => {
+            const userJwt = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
             try {
                 // Check if the user exists
                 const user = await prisma.user.findUnique({
                     where: { id: Number(userJwt.userId) },
                 });
-
                 if (!user) {
                     throw new Error("User not found");
                 }
-
                 // Create the new Todo
                 const newTodo = await prisma.todo.create({
                     data: {
@@ -83,61 +60,38 @@ const todoResolvers = {
                         userId: user.id,
                     },
                 });
-
                 return newTodo;
-            } catch (error: any) {
+            }
+            catch (error) {
                 throw new Error("Error adding Todo: " + error.message);
             }
         },
-
-        deleteTodo: async (
-            _: any,
-            { id, token }: { id: string; token: string }
-        ): Promise<boolean> => {
+        deleteTodo: async (_, { id, token }) => {
             try {
                 const todo = await prisma.todo.findUnique({
                     where: { id: parseInt(id, 10) },
                 });
-
                 if (!todo) {
                     throw new Error("Todo not found");
                 }
-
                 // Delete the todo
                 await prisma.todo.delete({
                     where: { id: parseInt(id, 10) },
                 });
-
                 return true;
-            } catch (error: any) {
+            }
+            catch (error) {
                 throw new Error("Error deleting Todo: " + error.message);
             }
         },
-
-        editTodo: async (
-            _: any,
-            {
-                id,
-                title,
-                description,
-                completed,
-            }: {
-                id: string;
-                token: string;
-                title?: string;
-                description?: string;
-                completed?: boolean;
-            }
-        ): Promise<any> => {
+        editTodo: async (_, { id, title, description, completed, }) => {
             try {
                 const todo = await prisma.todo.findUnique({
                     where: { id: parseInt(id, 10) },
                 });
-
                 if (!todo) {
                     throw new Error("Todo not found");
                 }
-
                 const updatedTodo = await prisma.todo.update({
                     where: { id: parseInt(id, 10) },
                     data: {
@@ -146,13 +100,12 @@ const todoResolvers = {
                         completed: completed ?? todo.completed,
                     },
                 });
-
                 return updatedTodo;
-            } catch (error: any) {
+            }
+            catch (error) {
                 throw new Error("Error editing Todo: " + error.message);
             }
         },
     },
 };
-
-export { todoResolvers };
+exports.todoResolvers = todoResolvers;

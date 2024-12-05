@@ -1,13 +1,14 @@
 "use client";
 
+import { queryClient } from "@/components/tanStackProvider";
+import Header from "@/pages/Header";
 import { getTodoById } from "@/todoRequests/getTodoById";
 import { updateTodo } from "@/todoRequests/updateTodo";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useParams, useRouter } from "next/navigation";
-import { useState, ChangeEvent } from "react";
-import { toast, ToastContainer } from "react-toastify";
 import Cookies from "js-cookie";
-import { queryClient } from "@/components/tanStackProvider";
+import { useParams, useRouter } from "next/navigation";
+import { ChangeEvent, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
 
 const TodoDetail: React.FC = () => {
     const router = useRouter();
@@ -87,97 +88,105 @@ const TodoDetail: React.FC = () => {
     }
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-500">
-            <ToastContainer position="top-right" autoClose={2000} newestOnTop />
+        <>
+            <Header />
+            <div className="min-h-screen bg-gray-500 py-20">
+                <ToastContainer position="top-right" autoClose={2000} newestOnTop />
 
-            <div className="w-full mx-20 p-6 bg-white shadow-2xl rounded-lg">
-                <button
-                    onClick={() => router.back()}
-                    className="text-blue-500 mb-4 hover:text-blue-700 focus:outline-none"
-                >
-                    &larr; Back
-                </button>
+                <div className="flex justify-center items-center">
+                    {isEditing && (
+                        <div className="w-[700px] bg-gray-500 bg-opacity-50 py-10">
+                            <div className="bg-white p-6 rounded-lg w-[700px]">
+                                <h3 className="text-xl font-semibold mb-4">Edit Todo</h3>
 
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-                    Title: {todo.title}
-                </h2>
-                <p className="text-lg text-gray-700 mb-4">
-                    Description: {todo.description}
-                </p>
-                <p className="text-lg text-gray-700 mb-4">
-                    Status:{" "}
-                    <span className={todo.completed ? "text-green-500" : "text-red-500"}>
-                        {todo.completed ? "Completed" : "Not Completed"}
-                    </span>
-                </p>
-                <p className="text-sm text-gray-500 mb-4">
-                    Created At: {new Date(todo.createdAt).toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-500">
-                    Last Updated: {new Date(todo.updatedAt).toLocaleString()}
-                </p>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                            setTitle(e.target.value)
+                                        }
+                                        className="w-full p-2 border border-gray-300 rounded-md"
+                                    />
+                                </div>
 
-                <div className="flex justify-end items-center mx-10 my-2">
-                    <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
-                        onClick={onEdit}
-                    >
-                        Edit
-                    </button>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        value={description}
+                                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                                            setDescription(e.target.value)
+                                        }
+                                        className="w-full p-2 border border-gray-300 rounded-md"
+                                    />
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleUpdate}
+                                        className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
-            </div>
 
-            {/* Modal for Editing Todo */}
-            {isEditing && (
-                <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-lg w-96">
-                        <h3 className="text-xl font-semibold mb-4">Edit Todo</h3>
+                <div className="flex justify-center items-center">
+                    <div className="w-[700px]  mx-20 p-6 bg-white shadow-2xl rounded-lg">
+                        <button
+                            onClick={() => router.back()}
+                            className="text-blue-500 mb-4 hover:text-blue-700 focus:outline-none"
+                        >
+                            &larr; Back
+                        </button>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">
-                                Title
-                            </label>
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    setTitle(e.target.value)
-                                }
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+                            Title: {todo.title}
+                        </h2>
+                        <p className="text-lg text-gray-700 mb-4">
+                            Description: {todo.description}
+                        </p>
+                        <p className="text-lg text-gray-700 mb-4">
+                            Status:{" "}
+                            <span
+                                className={todo.completed ? "text-green-500" : "text-red-500"}
+                            >
+                                {todo.completed ? "Completed" : "Not Completed"}
+                            </span>
+                        </p>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Created At: {new Date(todo.createdAt).toLocaleString()}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Last Updated: {new Date(todo.updatedAt).toLocaleString()}
+                        </p>
 
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">
-                                Description
-                            </label>
-                            <textarea
-                                value={description}
-                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                                    setDescription(e.target.value)
-                                }
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                            />
-                        </div>
-
-                        <div className="flex justify-end">
+                        <div className="flex justify-end items-center mx-10 my-2">
                             <button
-                                onClick={handleUpdate}
                                 className="px-4 py-2 bg-blue-500 text-white rounded mr-2"
+                                onClick={onEdit}
                             >
-                                Save
-                            </button>
-                            <button
-                                onClick={() => setIsEditing(false)}
-                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded"
-                            >
-                                Cancel
+                                Edit
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
+            </div>
+        </>
     );
 };
 

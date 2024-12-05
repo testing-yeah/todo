@@ -1,5 +1,5 @@
-import React from 'react'
-import LogoutButton from './LogoutButton'
+import React from "react";
+import LogoutButton from "./LogoutButton";
 
 const Header = () => {
     return (
@@ -7,11 +7,11 @@ const Header = () => {
             <div className="text-3xl text-white font-bold">
                 <h1>Todo App</h1>
             </div>
-            <div className="">
+            <div>
                 <LogoutButton />
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default Header
+export default Header;
