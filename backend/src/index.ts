@@ -19,88 +19,88 @@ const port = process.env.PORT || 8080;
 app.use(cookieParser());
 
 interface MyJwtPayload extends JwtPayload {
-    userId: string;
+  userId: string;
 }
 
 const resolvers = {
-    Query: {
-        ...todoResolvers.Query,
-        ...userResolvers.Query,
-    },
-    Mutation: {
-        ...todoResolvers.Mutation,
-        ...userResolvers.Mutation,
-    },
+  Query: {
+    ...todoResolvers.Query,
+    ...userResolvers.Query,
+  },
+  Mutation: {
+    ...todoResolvers.Mutation,
+    ...userResolvers.Mutation,
+  },
 };
 
 const verifyToken = (authorizationHeader: string): MyJwtPayload | null => {
-    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
-        return null;
-    }
+  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+    return null;
+  }
 
-    const token = authorizationHeader.replace("Bearer ", "");
+  const token = authorizationHeader.replace("Bearer ", "");
 
-    try {
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string);
-        // Ensure the decodedToken is of the correct type
-        return decodedToken as MyJwtPayload;
-    } catch (err: unknown) {
-        if (err instanceof Error) {
-            if (err.name === "TokenExpiredError") {
-                console.error("Token has expired");
-            } else {
-                console.error("Invalid or expired token");
-            }
-        } else {
-            console.error("Unknown error occurred during token verification");
-        }
-        return null;
+  try {
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string);
+
+    return decodedToken as MyJwtPayload;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      if (err.name === "TokenExpiredError") {
+        console.error("Token has expired");
+      } else {
+        console.error("Invalid or expired token");
+      }
+    } else {
+      console.error("Unknown error occurred during token verification");
     }
+    return null;
+  }
 };
 
 // Apollo Server Setup
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    context: async ({ req }) => {
-        const sessionToken = req?.headers?.authorization;
+  typeDefs,
+  resolvers,
+  context: async ({ req }) => {
+    const sessionToken = req?.headers?.authorization;
 
-        let user = null;
+    let user = null;
 
-        if (sessionToken) {
-            const decodedToken = verifyToken(sessionToken);
-            if (decodedToken) {
-                user = { id: decodedToken.userId };
-            }
-        }
+    if (sessionToken) {
+      const decodedToken = verifyToken(sessionToken);
+      if (decodedToken) {
+        user = { id: decodedToken.userId };
+      }
+    }
 
-        return {
-            prisma,
-            user,
-        };
-    },
+    return {
+      prisma,
+      user,
+    };
+  },
 });
 
 const serverStart = async () => {
-    const corsOptions = {
-        origin: "http://localhost:3000",
-        credentials: true,
-        methods: ["GET", "POST", "OPTIONS"],
-    };
-    app.use(cors(corsOptions));
+  const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+  };
+  app.use(cors(corsOptions));
 
-    await server.start();
+  await server.start();
 
-    server.applyMiddleware({ app } as any);
+  server.applyMiddleware({ app } as any);
 
-    // Start the Express server
-    app.listen(port, () =>
-        console.log(
-            `Server is running on http://localhost:${port}${server.graphqlPath}`
-        )
-    );
+  // Start the Express server
+  app.listen(port, () =>
+    console.log(
+      `Server is running on http://localhost:${port}${server.graphqlPath}`
+    )
+  );
 };
 
 serverStart().catch((err) => {
-    console.log(`Server error: ${err}`);
+  console.log(`Server error: ${err}`);
 });

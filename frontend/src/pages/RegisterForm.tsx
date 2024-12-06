@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { RegisterUserResponse, RegisterUserVariables } from "@/lib/graphql";
 import { registerUserReq } from "@/userRequests/registerUserReq";
@@ -24,6 +24,8 @@ const RegisterForm: React.FC = () => {
     const [password, setPassword] = useState<string>("");
     const [username, setUsername] = useState<string>("");
 
+    const router = useRouter();
+
     const { mutate: registerUser, status } = useMutation<
         RegisterUserResponse,
         Error,
@@ -40,17 +42,10 @@ const RegisterForm: React.FC = () => {
         },
     });
 
-    const router = useRouter();
-
-    const handleRegister = async (e: FormEvent): Promise<void> => {
+    const handleRegister = (e: FormEvent): void => {
         e.preventDefault();
 
-        try {
-            registerUser({ email, password, username });
-        } catch (err) {
-            console.error("Error during registration:", err);
-            toast.error("Registration failed. Please try again.");
-        }
+        registerUser({ email, password, username });
     };
 
     return (

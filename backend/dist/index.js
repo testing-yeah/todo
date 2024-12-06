@@ -35,7 +35,6 @@ const verifyToken = (authorizationHeader) => {
     const token = authorizationHeader.replace("Bearer ", "");
     try {
         const decodedToken = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        // Ensure the decodedToken is of the correct type
         return decodedToken;
     }
     catch (err) {

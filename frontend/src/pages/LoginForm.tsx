@@ -38,7 +38,7 @@ const LoginPage = () => {
         },
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         loginUser({ email, password });
     };

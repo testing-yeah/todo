@@ -13,6 +13,12 @@ const userResolvers = {
     Mutation: {
         register: async (_, { email, password, username }) => {
             try {
+                const existingUser = await prisma.user.findUnique({
+                    where: { email },
+                });
+                if (existingUser) {
+                    throw new Error("User already exists with this email");
+                }
                 const hashedPassword = await bcryptjs_1.default.hash(password, 10);
                 const user = await prisma.user.create({
                     data: {

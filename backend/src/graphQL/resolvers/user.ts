@@ -15,7 +15,6 @@ interface LoginArgs {
     password: string;
 }
 
-
 const userResolvers = {
     Query: {},
 
@@ -25,6 +24,14 @@ const userResolvers = {
             { email, password, username }: RegisterArgs
         ): Promise<any> => {
             try {
+                const existingUser = await prisma.user.findUnique({
+                    where: { email },
+                });
+
+                if (existingUser) {
+                    throw new Error("User already exists with this email");
+                }
+
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 const user = await prisma.user.create({
